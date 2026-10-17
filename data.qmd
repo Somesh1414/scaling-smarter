@@ -1,0 +1,326 @@
+---
+title: "Data"
+---
+
+## The dataset
+
+This project uses four e-commerce datasets:
+
+- orders
+- order items
+- products
+- sellers
+
+Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+
+orders <- read_csv("data/orders.csv")
+order_items <- read_csv("data/order_items.csv")
+products <- read_csv("data/products.csv")
+sellers <- read_csv("data/sellers.csv")
+```
+
+## Original dataset dimensions
+
+Before cleaning or joining the data, I first checked the size of each dataset.
+
+```{r}
+dataset_dimensions <- tibble(
+  dataset = c(
+    "Orders",
+    "Order Items",
+    "Products",
+    "Sellers"
+  ),
+  rows = c(
+    nrow(orders),
+    nrow(order_items),
+    nrow(products),
+    nrow(sellers)
+  ),
+  columns = c(
+    ncol(orders),
+    ncol(order_items),
+    ncol(products),
+    ncol(sellers)
+  )
+)
+
+dataset_dimensions
+```
+
+The orders table contains one row per order, while the order-items table may contain multiple rows for the same order because one order can contain several products.
+
+## Data structure
+
+I reviewed the structure of each dataset to understand the available variables and their data types.
+
+### Orders
+
+```{r}
+glimpse(orders)
+```
+
+The orders dataset contains order status, purchase dates, delivery dates, delivery duration, and estimated delivery duration.
+
+### Order items
+
+```{r}
+glimpse(order_items)
+```
+
+The order-items dataset connects orders with products and sellers and includes product price and freight value.
+
+### Products
+
+```{r}
+glimpse(products)
+```
+
+The products dataset contains product category and physical characteristics such as weight, length, height, and width.
+
+### Sellers
+
+```{r}
+glimpse(sellers)
+```
+
+The sellers dataset provides seller location information including seller city and state.
+
+## Missing values
+
+Before deciding how to clean the data, I checked how many missing values appear in each dataset.
+
+```{r}
+missing_summary <- tibble(
+  dataset = c(
+    "Orders",
+    "Order Items",
+    "Products",
+    "Sellers"
+  ),
+  missing_values = c(
+    sum(is.na(orders)),
+    sum(is.na(order_items)),
+    sum(is.na(products)),
+    sum(is.na(sellers))
+  )
+)
+
+missing_summary
+```
+
+The orders and products datasets contain missing values, so I looked more closely at which variables are affected.
+
+### Missing values in orders
+
+```{r}
+orders_missing <- tibble(
+  variable = names(orders),
+  missing_values = colSums(is.na(orders))
+) |>
+  filter(missing_values > 0)
+
+orders_missing
+```
+
+The missing order values mainly affect delivery information.
+
+Because this project evaluates fulfillment performance, orders without a usable delivery duration cannot be included in the delivery analysis.
+
+### Missing values in products
+
+```{r}
+products_missing <- tibble(
+  variable = names(products),
+  missing_values = colSums(is.na(products))
+) |>
+  filter(missing_values > 0)
+
+products_missing
+```
+
+Some product category, description, and physical-characteristic fields contain missing values.
+
+These records are retained because those variables are not required for every part of the analysis. Missing product weight is removed only when a chart specifically uses product weight.
+
+## Duplicate rows
+
+I also checked for complete duplicate rows in each original dataset.
+
+```{r}
+duplicate_summary <- tibble(
+  dataset = c(
+    "Orders",
+    "Order Items",
+    "Products",
+    "Sellers"
+  ),
+  duplicate_rows = c(
+    sum(duplicated(orders)),
+    sum(duplicated(order_items)),
+    sum(duplicated(products)),
+    sum(duplicated(sellers))
+  )
+)
+
+duplicate_summary
+```
+
+This check confirms whether any complete duplicate records need to be removed before continuing.
+
+## Cleaning the order data
+
+The analysis focuses on completed deliveries.
+
+I therefore kept only orders with a delivered status and a non-missing delivery duration.
+
+```{r}
+orders_clean <- orders |>
+  filter(order_status == "delivered") |>
+  filter(!is.na(delivery_days))
+```
+
+The effect of this cleaning step is shown below.
+
+```{r}
+order_cleaning_summary <- tibble(
+  stage = c(
+    "Original Orders",
+    "Cleaned Delivered Orders"
+  ),
+  rows = c(
+    nrow(orders),
+    nrow(orders_clean)
+  ),
+  columns = c(
+    ncol(orders),
+    ncol(orders_clean)
+  )
+)
+
+order_cleaning_summary
+```
+
+A delivery-status variable is then created by comparing the actual delivery duration with the estimated delivery duration.
+
+```{r}
+orders_clean <- orders_clean |>
+  mutate(
+    delivery_status = if_else(
+      delivery_days <= estimated_days,
+      "On Time",
+      "Late"
+    )
+  )
+```
+
+```{r}
+delivery_status_summary <- orders_clean |>
+  count(delivery_status) |>
+  mutate(
+    percent = n / sum(n) * 100
+  )
+
+delivery_status_summary
+```
+
+This gives the analysis a consistent way to compare delivery reliability across seller groups.
+
+## Building the analytical dataset
+
+The cleaned order data is then joined with order-item, seller, and product information.
+
+```{r}
+supply_chain_data <- orders_clean |>
+  left_join(order_items, by = "order_id") |>
+  left_join(sellers, by = "seller_id") |>
+  left_join(products, by = "product_id")
+```
+
+I created `supply_chain_data` so the main supply chain variables are available in one table.
+
+This allows delivery performance, seller location, freight cost, product price, and product characteristics to be analyzed together.
+
+## Final dataset dimensions
+
+```{r}
+final_dataset_summary <- tibble(
+  dataset = c(
+    "Cleaned Orders",
+    "Final Supply Chain Dataset"
+  ),
+  rows = c(
+    nrow(orders_clean),
+    nrow(supply_chain_data)
+  ),
+  columns = c(
+    ncol(orders_clean),
+    ncol(supply_chain_data)
+  )
+)
+
+final_dataset_summary
+```
+
+The final dataset contains more rows than the cleaned orders dataset because one order can contain more than one item.
+
+## Final dataset structure
+
+```{r}
+glimpse(supply_chain_data)
+```
+
+The final dataset combines fulfillment, seller, freight, price, and product information in one analytical table.
+
+## Creating the freight-to-price ratio
+
+Freight cost alone does not show how large the shipping cost is relative to the value of the product.
+
+For example, a freight charge of 20 has a much larger impact on a product priced at 40 than on a product priced at 400.
+
+I therefore created a freight-to-price ratio.
+
+```{r}
+supply_chain_data <- supply_chain_data |>
+  mutate(
+    freight_ratio = freight_value / price
+  )
+```
+
+```{r}
+freight_ratio_summary <- supply_chain_data |>
+  summarise(
+    minimum = min(freight_ratio, na.rm = TRUE),
+    average = mean(freight_ratio, na.rm = TRUE),
+    median = median(freight_ratio, na.rm = TRUE),
+    maximum = max(freight_ratio, na.rm = TRUE)
+  )
+
+freight_ratio_summary
+```
+
+The large difference between the median and maximum also shows that some products have unusually high freight costs relative to their price.
+
+Rather than automatically removing those observations, I keep them because they may represent real costly shipments that are useful for the business analysis.
+
+## Variables used in the exploration
+
+The main variables used in the Exploration page are:
+
+- `seller_state` — seller location
+- `delivery_days` — actual delivery duration
+- `estimated_days` — estimated delivery duration
+- `delivery_status` — on-time or late delivery
+- `price` — product selling price
+- `freight_value` — freight cost
+- `freight_ratio` — freight cost relative to product price
+- `product_weight_g` — product weight
+- `seller_id` — seller identifier
+- `order_id` — order identifier

@@ -1,0 +1,43 @@
+---
+title: "Scaling Smarter: Evaluating Seller Performance in an E-Commerce Marketplace"
+---
+
+## Business question
+
+**Which seller segments are helping the marketplace scale efficiently, and which ones are creating high fulfillment costs or weak operational performance?**
+
+## Business scenario
+
+An e-commerce marketplace depends on thousands of independent sellers to fulfill customer orders.
+
+As the marketplace grows, management needs to understand whether the seller groups handling the most activity are also operating efficiently.
+
+A seller group may handle a large number of items, but high delivery delays or high freight costs could make that growth harder to sustain.
+
+This project looks at seller performance using marketplace volume, delivery reliability, freight cost, seller location, and product characteristics.
+
+## Why this matters
+
+The goal is to identify seller groups that support efficient marketplace growth and seller groups that may need closer attention.
+
+The analysis also helps separate two different situations:
+
+- higher logistics costs caused by weaker operational performance, and
+- higher logistics costs that may be explained by the types of products being shipped.
+
+This distinction is important because a seller should not automatically be considered inefficient just because it ships heavier or more expensive-to-transport products.
+
+## How the analysis is organized
+
+The project is structured in four stages:
+
+1. **Data** — clean and combine the order, order-item, seller, and product datasets.
+2. **Exploration** — compare seller groups using marketplace volume, delivery performance, and freight efficiency.
+3. **Modeling** — build on the exploratory findings using the modeling methods introduced later in the course.
+4. **Conclusions** — summarize the findings and connect them back to the business question.
+
+## About this project
+
+I am a graduate student interested in supply chain and business analytics.
+
+This project uses R, ggplot2, and Quarto to analyze e-commerce fulfillment performance and turn the results into business recommendations.
