@@ -1,7 +1,7 @@
 ---
 title: "Exploration"
 toc: true
-toc-depth: 3
+toc-depth: 2
 ---
 
 ```{r}
@@ -36,17 +36,15 @@ supply_chain_data <- orders_clean |>
   )
 ```
 
-The marketplace depends on many independent sellers to fulfill customer orders.
+This exploration looks at how seller scale, delivery performance, freight cost, and product characteristics interact across the marketplace.
 
-As the business grows, management needs to know whether the seller groups handling the most marketplace activity are also delivering reliably and at a reasonable logistics cost.
+The goal is not just to identify expensive or delayed shipments. It is to understand where marketplace growth is efficient and where operational attention could have the largest impact.
 
-The exploration focuses on this question:
-
-**Which seller groups are helping the marketplace scale efficiently, and which ones may need more attention?**
+**Business question:** Which seller segments are helping the marketplace scale efficiently, and which ones are creating high fulfillment costs or weak operational performance?
 
 ## Marketplace benchmark
 
-Before comparing seller groups, I first calculated overall marketplace performance.
+Before comparing seller groups, I first calculated the overall marketplace performance.
 
 ```{r}
 overall_performance <- supply_chain_data |>
@@ -61,11 +59,11 @@ overall_performance <- supply_chain_data |>
 overall_performance
 ```
 
-The marketplace contains **`r overall_performance$total_items` items**.
+The marketplace contains **`r overall_performance$total_items` item rows**.
 
 Average delivery time is **`r round(overall_performance$average_delivery_days, 1)` days**, average freight cost is **`r round(overall_performance$average_freight_cost, 1)`**, and the overall on-time delivery rate is **`r round(overall_performance$on_time_rate, 1)`%**.
 
-These values act as the benchmark for the comparisons that follow.
+These values provide the benchmark for the rest of the exploration.
 
 ```{r}
 state_names <- tibble(
@@ -110,13 +108,17 @@ largest_state_share <-
   overall_performance$total_items * 100
 ```
 
-## 1. Which seller groups matter most — and are they reliable?
+## 1. Where scale meets reliability
 
-Marketplace scale matters because performance problems in a large seller group can affect far more orders than the same problem in a small seller group.
+The first question is whether the seller groups handling the most marketplace activity are also delivering reliably.
 
-### 1a. Which states combine marketplace scale with delivery performance?
+### 1a. Volume and delivery performance
 
-The first chart combines item volume, on-time delivery performance, and average freight cost.
+This chart combines three measures:
+
+- item volume,
+- on-time delivery performance,
+- average freight cost.
 
 ```{r}
 ggplot(
@@ -134,7 +136,7 @@ ggplot(
     linetype = "dashed"
   ) +
   labs(
-    title = "High marketplace volume does not always mean stronger fulfillment",
+    title = "Scale does not always guarantee stronger fulfillment",
     subtitle = "Bubble size represents average freight cost",
     x = "Number of Items",
     y = "On-Time Delivery Rate (%)",
@@ -146,11 +148,11 @@ ggplot(
 
 **What this shows:** **`r largest_state$seller_name`** handles **`r largest_state$total_items` items**, representing about **`r round(largest_state_share, 1)`%** of marketplace activity.
 
-Its scale makes its delivery performance especially important because even a small change can affect a large number of orders.
+Because of its scale, even a relatively small operational change in this seller group could affect a large number of marketplace items.
 
-### 1b. Which major seller states are above or below the delivery benchmark?
+### 1b. Who beats the marketplace benchmark?
 
-To make the delivery difference easier to see, I compared each major seller state directly with the overall marketplace on-time rate.
+I next compared each major seller state's delivery performance directly with the overall marketplace rate.
 
 ```{r}
 delivery_comparison <- top_8_states |>
@@ -195,7 +197,7 @@ ggplot(
   ) +
   labs(
     title = "Major seller states fall on both sides of the delivery benchmark",
-    subtitle = "Difference from the overall marketplace on-time rate",
+    subtitle = "Distance from the overall marketplace on-time rate",
     x = "Percentage Points Above or Below Marketplace Average",
     y = "Seller State",
     color = "Above Average"
@@ -203,15 +205,15 @@ ggplot(
   theme_light()
 ```
 
-**What this shows:** **`r best_delivery_state$seller_name`** performs the strongest relative to the marketplace benchmark, while **`r weakest_delivery_state$seller_name`** has the weakest performance among the eight largest seller states.
+**What this shows:** **`r best_delivery_state$seller_name`** performs strongest relative to the marketplace benchmark, while **`r weakest_delivery_state$seller_name`** has the weakest delivery performance among the eight largest seller states.
 
-The important point is that an underperforming seller state becomes more important when it also handles a large amount of marketplace activity.
+This matters because weak performance becomes more important when it occurs in a seller group handling substantial marketplace volume.
 
-## 2. Which seller groups show the biggest operational concern?
+## 2. Where operations start to slip
 
-Delivery performance and freight burden should not be judged separately.
+Delivery performance and freight burden should not be evaluated separately.
 
-A seller group with strong delivery and low freight burden looks very different from one with weaker delivery and high freight cost relative to product value.
+A seller group with strong delivery and low freight burden occupies a very different operating position from one with weaker delivery and higher freight cost relative to product price.
 
 ```{r}
 ggplot(
@@ -233,7 +235,7 @@ ggplot(
     linetype = "dashed"
   ) +
   labs(
-    title = "Seller states face different combinations of freight burden and delivery performance",
+    title = "Seller states occupy very different operating positions",
     subtitle = "Bubble size represents marketplace item volume",
     x = "Average Freight-to-Price Ratio",
     y = "On-Time Delivery Rate (%)",
@@ -243,23 +245,81 @@ ggplot(
   theme_light()
 ```
 
-**What this shows:** The chart separates the major seller states into different operating positions.
+**What this shows:** Seller groups above the horizontal benchmark have stronger-than-average delivery performance.
 
-Seller groups above the horizontal benchmark have stronger delivery performance, while seller groups to the right of the vertical benchmark carry a higher freight burden.
+Seller groups to the right of the vertical benchmark have a higher-than-average freight burden.
 
-The groups that fall below the delivery benchmark while also sitting above the freight benchmark deserve the closest management attention.
+The groups that combine weaker delivery with higher freight burden deserve the closest operational attention, especially when their bubbles are large.
 
-However, higher freight cost may not always be caused by poor seller performance.
+## 3. When does the marketplace feel the most pressure?
 
-The next step is to check whether the products being shipped help explain the difference.
+Seller performance should also be viewed through time.
 
-## 3. Are higher logistics costs caused by the seller — or by what they ship?
+A seller network may operate differently during low-volume and high-volume periods. I therefore summarized marketplace item activity by month and year.
 
-Product characteristics can affect freight cost.
+```{r}
+monthly_activity <- supply_chain_data |>
+  group_by(purchase_year, purchase_month) |>
+  summarise(
+    total_items = n(),
+    on_time_rate = mean(delivery_status == "On Time") * 100
+  )
 
-In particular, heavier products would normally be expected to cost more to transport.
+peak_month <- monthly_activity |>
+  arrange(desc(total_items)) |>
+  head(1)
+```
 
-### 3a. Does product weight help explain freight cost?
+### Activity through time: area + line + points
+
+The area shows the magnitude of monthly marketplace activity.
+
+The line emphasizes the movement between months, while the points make individual monthly observations easier to identify.
+
+```{r}
+ggplot(
+  monthly_activity,
+  aes(
+    x = purchase_month,
+    y = total_items,
+    group = 1
+  )
+) +
+  geom_area(
+    fill = "#4CC9F0",
+    alpha = 0.45
+  ) +
+  geom_line(
+    color = "#3A0CA3",
+    linewidth = 1.2
+  ) +
+  geom_point(
+    color = "#F72585",
+    size = 3
+  ) +
+  facet_wrap(~ purchase_year) +
+  labs(
+    title = "Marketplace pressure changes sharply across the year",
+    subtitle = "Area shows volume while line and points reveal the monthly pattern",
+    x = "Purchase Month",
+    y = "Number of Items"
+  ) +
+  theme_light()
+```
+
+**What this shows:** The highest-volume period occurs in month **`r peak_month$purchase_month`** of **`r peak_month$purchase_year`**, with **`r peak_month$total_items` items**.
+
+The on-time delivery rate during that period was approximately **`r round(peak_month$on_time_rate, 1)`%**.
+
+This gives management a clearer picture of when the marketplace is carrying the greatest fulfillment workload.
+
+## 4. Cost or product mix?
+
+The previous charts identify differences in freight performance, but higher freight cost does not automatically mean a seller group is inefficient.
+
+Some sellers may simply handle heavier products.
+
+### 4a. Does weight explain freight cost?
 
 ```{r}
 #| message: false
@@ -273,28 +333,32 @@ supply_chain_data |>
       y = freight_value
     )
   ) +
-  geom_point(alpha = 0.12) +
-  geom_smooth(se = FALSE) +
+  geom_point(
+    color = "#4361EE",
+    alpha = 0.12
+  ) +
+  geom_smooth(
+    color = "#F72585",
+    se = FALSE
+  ) +
   labs(
     title = "Heavier products generally cost more to ship",
-    subtitle = "Relationship between product weight and freight cost",
+    subtitle = "Product characteristics explain part of the freight burden",
     x = "Product Weight (grams)",
     y = "Freight Cost"
   ) +
   theme_light()
 ```
 
-**What this shows:** Freight cost generally increases as product weight increases.
+**What this shows:** Freight cost generally rises as product weight increases.
 
-This means higher freight cost does not automatically mean a seller group is inefficient.
+Higher freight cost should therefore not automatically be treated as evidence of weak seller performance.
 
-Part of the cost difference may simply come from the types of products being shipped.
+Product mix explains at least part of the logistics difference.
 
-### 3b. Does the relationship change across major seller states?
+### 4b. Does the pattern change by seller state?
 
-If product weight explained freight cost in exactly the same way everywhere, the relationship should look similar across seller states.
-
-I therefore compared the four highest-volume states separately.
+I then compared this relationship separately across the four highest-volume seller states.
 
 ```{r}
 top_4_states <- top_8_states |>
@@ -314,30 +378,37 @@ supply_chain_data |>
   ggplot(
     aes(
       x = product_weight_g,
-      y = freight_value
+      y = freight_value,
+      color = seller_name
     )
   ) +
-  geom_point(alpha = 0.12) +
+  geom_point(alpha = 0.15) +
   geom_smooth(se = FALSE) +
   facet_wrap(~ seller_name) +
   labs(
-    title = "Freight patterns still differ across the largest seller states",
-    subtitle = "Product weight and freight cost for the four highest-volume states",
+    title = "Product weight matters, but freight patterns still differ by state",
+    subtitle = "Four highest-volume seller states",
     x = "Product Weight (grams)",
-    y = "Freight Cost"
+    y = "Freight Cost",
+    color = "Seller State"
   ) +
   theme_light()
 ```
 
-**What this shows:** The four largest seller states all show higher freight costs as product weight increases, but the patterns are not identical.
+**What this shows:** The largest seller states generally show higher freight costs as product weight increases, but their patterns are not identical.
 
-Product weight therefore explains part of the freight difference, but seller location and other fulfillment factors may also matter.
+Product weight therefore explains part of the freight difference, while seller location and other fulfillment factors may still contribute.
 
-## 4. Are averages hiding bigger cost problems?
+## 5. Are averages hiding risk?
 
-Average freight cost is useful, but it can hide unusually expensive shipments.
+Average freight cost alone can hide the shape of the underlying distribution.
 
-To look beyond the average, I compared the full freight-cost distributions of the five largest seller states.
+For this reason, I used two geoms together:
+
+- a violin plot to show the overall distribution,
+- a boxplot to show the center and spread.
+
+This use of layered geoms follows the multiple-geoms approach introduced in Week 5. :chatgpt-content-reference{index="2"}
 
 ```{r}
 top_5_states <- top_8_states |>
@@ -358,44 +429,52 @@ supply_chain_data |>
     aes(
       x = seller_name,
       y = freight_value,
-      fill = seller_name
+      fill = seller_name,
+      color = seller_name
     )
   ) +
-  geom_violin(alpha = 0.5) +
+  geom_violin(
+    alpha = 0.45
+  ) +
   geom_boxplot(
-    width = 0.12,
-    alpha = 0.7
+    width = 0.14,
+    alpha = 0.75
   ) +
   labs(
-    title = "Average freight cost hides large differences between shipments",
-    subtitle = "Freight-cost distributions for the five largest seller states",
+    title = "Average freight cost hides very different shipment patterns",
+    subtitle = "Violin shows the full distribution while the boxplot shows its center and spread",
     x = "Seller State",
     y = "Freight Cost",
-    fill = "Seller State"
+    fill = "Seller State",
+    color = "Seller State"
   ) +
-  guides(fill = "none") +
+  guides(
+    fill = "none",
+    color = "none"
+  ) +
   theme_light()
 ```
 
-**What this shows:** **`r highest_freight_state$seller_name`** has the highest average freight cost among the five largest seller states at about **`r round(highest_freight_state$average_freight_cost, 1)`**.
+**What this shows:** **`r highest_freight_state$seller_name`** has the highest average freight cost among the five largest seller states, at approximately **`r round(highest_freight_state$average_freight_cost, 1)`**.
 
-The distribution also shows that some seller groups contain shipments that are much more expensive than most of their orders.
+However, the shapes of the distributions show something the averages cannot: some seller states have a wider spread of freight costs and a larger number of unusually expensive shipments.
 
-Those shipments would be difficult to notice if management looked only at average freight cost.
+This distinction is important because a consistently expensive seller group represents a different operational problem from a seller group affected by only a smaller number of expensive shipments.
 
-## What does this mean for management?
+## 6. What should management do next?
 
-The exploration shows that seller performance should not be judged using only volume, delivery performance, or freight cost by itself.
+The analysis suggests that seller groups should not be judged using volume, delivery performance, or freight cost alone.
 
-High-volume seller groups matter more because even small improvements can affect a large number of marketplace orders.
+The strongest seller groups are those that combine meaningful marketplace scale with reliable delivery and a reasonable freight burden.
 
-At the same time, higher freight costs should not automatically be treated as seller inefficiency because heavier products naturally cost more to ship.
-
-Management should therefore focus most closely on seller groups that combine:
+Management should pay particular attention to seller groups that combine:
 
 - high marketplace volume,
 - delivery performance below the marketplace benchmark,
-- freight burden above the marketplace benchmark, and
-- freight costs that cannot be fully explained by the products being shipped.
+- freight burden above the marketplace benchmark,
+- high variation in freight cost, and
+- freight costs that cannot be fully explained by heavier products.
 
-The biggest opportunity is to identify places where a small operational improvement could have a large effect on marketplace growth.
+The time analysis adds another dimension by showing when marketplace workload reaches its highest levels.
+
+Together, these results help management distinguish scalable seller performance from areas where targeted operational improvement could have the greatest marketplace impact.
