@@ -162,29 +162,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+    <h2 id="toc-title">Data roadmap</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#the-dataset" id="toc-the-dataset" class="nav-link active" data-scroll-target="#the-dataset">The dataset</a></li>
   <li><a href="#original-dataset-dimensions" id="toc-original-dataset-dimensions" class="nav-link" data-scroll-target="#original-dataset-dimensions">Original dataset dimensions</a></li>
-  <li><a href="#data-structure" id="toc-data-structure" class="nav-link" data-scroll-target="#data-structure">Data structure</a>
-  <ul class="collapse">
-  <li><a href="#orders" id="toc-orders" class="nav-link" data-scroll-target="#orders">Orders</a></li>
-  <li><a href="#order-items" id="toc-order-items" class="nav-link" data-scroll-target="#order-items">Order items</a></li>
-  <li><a href="#products" id="toc-products" class="nav-link" data-scroll-target="#products">Products</a></li>
-  <li><a href="#sellers" id="toc-sellers" class="nav-link" data-scroll-target="#sellers">Sellers</a></li>
-  </ul></li>
-  <li><a href="#missing-values" id="toc-missing-values" class="nav-link" data-scroll-target="#missing-values">Missing values</a>
-  <ul class="collapse">
-  <li><a href="#missing-values-in-orders" id="toc-missing-values-in-orders" class="nav-link" data-scroll-target="#missing-values-in-orders">Missing values in orders</a></li>
-  <li><a href="#missing-values-in-products" id="toc-missing-values-in-products" class="nav-link" data-scroll-target="#missing-values-in-products">Missing values in products</a></li>
-  </ul></li>
+  <li><a href="#data-structure" id="toc-data-structure" class="nav-link" data-scroll-target="#data-structure">Data structure</a></li>
+  <li><a href="#missing-values" id="toc-missing-values" class="nav-link" data-scroll-target="#missing-values">Missing values</a></li>
   <li><a href="#duplicate-rows" id="toc-duplicate-rows" class="nav-link" data-scroll-target="#duplicate-rows">Duplicate rows</a></li>
   <li><a href="#cleaning-the-order-data" id="toc-cleaning-the-order-data" class="nav-link" data-scroll-target="#cleaning-the-order-data">Cleaning the order data</a></li>
+  <li><a href="#creating-delivery-status" id="toc-creating-delivery-status" class="nav-link" data-scroll-target="#creating-delivery-status">Creating delivery status</a></li>
   <li><a href="#building-the-analytical-dataset" id="toc-building-the-analytical-dataset" class="nav-link" data-scroll-target="#building-the-analytical-dataset">Building the analytical dataset</a></li>
   <li><a href="#final-dataset-dimensions" id="toc-final-dataset-dimensions" class="nav-link" data-scroll-target="#final-dataset-dimensions">Final dataset dimensions</a></li>
   <li><a href="#final-dataset-structure" id="toc-final-dataset-structure" class="nav-link" data-scroll-target="#final-dataset-structure">Final dataset structure</a></li>
-  <li><a href="#creating-the-freight-to-price-ratio" id="toc-creating-the-freight-to-price-ratio" class="nav-link" data-scroll-target="#creating-the-freight-to-price-ratio">Creating the freight-to-price ratio</a></li>
+  <li><a href="#freight-to-price-ratio" id="toc-freight-to-price-ratio" class="nav-link" data-scroll-target="#freight-to-price-ratio">Freight-to-price ratio</a></li>
   <li><a href="#variables-used-in-the-exploration" id="toc-variables-used-in-the-exploration" class="nav-link" data-scroll-target="#variables-used-in-the-exploration">Variables used in the exploration</a></li>
   </ul>
 </nav>
@@ -211,16 +202,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<section id="the-dataset" class="level2">
-<h2 class="anchored" data-anchor-id="the-dataset">The dataset</h2>
-<p>This project uses four e-commerce datasets:</p>
-<ul>
-<li>orders</li>
-<li>order items</li>
-<li>products</li>
-<li>sellers</li>
-</ul>
-<p>Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -232,6 +213,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>sellers <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/sellers.csv"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<section id="the-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="the-dataset">The dataset</h2>
+<p>This project uses four e-commerce datasets:</p>
+<ul>
+<li>orders</li>
+<li>order items</li>
+<li>products</li>
+<li>sellers</li>
+</ul>
+<p>Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.</p>
 </section>
 <section id="original-dataset-dimensions" class="level2">
 <h2 class="anchored" data-anchor-id="original-dataset-dimensions">Original dataset dimensions</h2>
@@ -239,7 +230,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dataset_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>original_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
@@ -260,7 +251,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>dataset_dimensions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>original_dimensions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 4 × 3
@@ -272,7 +263,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 4 Sellers       3095       4</code></pre>
 </div>
 </div>
-<p>The orders table contains one row per order, while the order-items table may contain multiple rows for the same order because one order can contain several products.</p>
+<p>The orders table contains one row per order, while the order-items table can contain multiple rows for the same order because one order may contain several products.</p>
 </section>
 <section id="data-structure" class="level2">
 <h2 class="anchored" data-anchor-id="data-structure">Data structure</h2>
@@ -344,7 +335,7 @@ $ product_height_cm          &lt;dbl&gt; 10, 18, 9, 4, 17, 5, 24, 8, 13, 10, 10,
 $ product_width_cm           &lt;dbl&gt; 14, 20, 15, 26, 13, 11, 44, 40, 17, 12, 16,…</code></pre>
 </div>
 </div>
-<p>The products dataset contains product category and physical characteristics such as weight, length, height, and width.</p>
+<p>The products dataset contains product category information and physical characteristics such as weight, length, height, and width.</p>
 </section>
 <section id="sellers" class="level3">
 <h3 class="anchored" data-anchor-id="sellers">Sellers</h3>
@@ -420,7 +411,7 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 2 delivery_days                           2965</code></pre>
 </div>
 </div>
-<p>The missing order values mainly affect delivery information.</p>
+<p>The missing values in the orders dataset affect delivery information.</p>
 <p>Because this project evaluates fulfillment performance, orders without a usable delivery duration cannot be included in the delivery analysis.</p>
 </section>
 <section id="missing-values-in-products" class="level3">
@@ -451,7 +442,8 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 </div>
 </div>
 <p>Some product category, description, and physical-characteristic fields contain missing values.</p>
-<p>These records are retained because those variables are not required for every part of the analysis. Missing product weight is removed only when a chart specifically uses product weight.</p>
+<p>These records are retained because those variables are not required for every part of the analysis.</p>
+<p>For analyses involving product weight, records with missing product weight are excluded only from that specific analysis rather than from the full dataset.</p>
 </section>
 </section>
 <section id="duplicate-rows" class="level2">
@@ -487,7 +479,8 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 4 Sellers                  0</code></pre>
 </div>
 </div>
-<p>This check confirms whether any complete duplicate records need to be removed before continuing.</p>
+<p>No complete duplicate rows were found in the four source datasets.</p>
+<p>Therefore, no records needed to be removed because of complete duplication.</p>
 </section>
 <section id="cleaning-the-order-data" class="level2">
 <h2 class="anchored" data-anchor-id="cleaning-the-order-data">Cleaning the order data</h2>
@@ -501,11 +494,11 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(delivery_days))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>The effect of this cleaning step is shown below.</p>
+<p>The effect of this cleaning decision is shown below.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>order_cleaning_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>cleaning_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">stage =</span> <span class="fu">c</span>(</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Original Orders"</span>,</span>
 <span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Delivered Orders"</span></span>
@@ -520,7 +513,7 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 <span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>order_cleaning_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>cleaning_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 3
@@ -530,7 +523,13 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 2 Cleaned Delivered Orders 96470      11</code></pre>
 </div>
 </div>
-<p>A delivery-status variable is then created by comparing the actual delivery duration with the estimated delivery duration.</p>
+<p>This cleaning step removed <strong>2971 rows</strong> from the original orders dataset.</p>
+<p>These rows were excluded because the analysis focuses on completed orders with a usable delivery duration.</p>
+<p>Keeping them would prevent a consistent comparison between actual delivery duration and estimated delivery duration.</p>
+</section>
+<section id="creating-delivery-status" class="level2">
+<h2 class="anchored" data-anchor-id="creating-delivery-status">Creating delivery status</h2>
+<p>A delivery-performance variable is created by comparing actual delivery duration with estimated delivery duration.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -544,6 +543,7 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 <span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
+<p>I then checked how many cleaned orders fall into each delivery category.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -563,7 +563,7 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 2 On Time         89163   92.4 </code></pre>
 </div>
 </div>
-<p>This gives the analysis a consistent way to compare delivery reliability across seller groups.</p>
+<p>This variable gives the analysis a consistent way to compare delivery reliability across seller groups.</p>
 </section>
 <section id="building-the-analytical-dataset" class="level2">
 <h2 class="anchored" data-anchor-id="building-the-analytical-dataset">Building the analytical dataset</h2>
@@ -572,20 +572,33 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>supply_chain_data <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(order_items, <span class="at">by =</span> <span class="st">"order_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sellers, <span class="at">by =</span> <span class="st">"seller_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(products, <span class="at">by =</span> <span class="st">"product_id"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    order_items,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"order_id"</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>    sellers,</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"seller_id"</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>    products,</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"product_id"</span></span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">freight_ratio =</span> freight_value <span class="sc">/</span> price</span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<p>I created <code>supply_chain_data</code> so the main supply chain variables are available in one table.</p>
+<p>I created <code>supply_chain_data</code> so the main supply-chain variables are available in one table.</p>
 <p>This allows delivery performance, seller location, freight cost, product price, and product characteristics to be analyzed together.</p>
 </section>
 <section id="final-dataset-dimensions" class="level2">
 <h2 class="anchored" data-anchor-id="final-dataset-dimensions">Final dataset dimensions</h2>
+<p>After cleaning, joining, and creating the freight-to-price ratio, I checked the dimensions of the analytical dataset.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>final_dataset_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>final_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Orders"</span>,</span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Final Supply Chain Dataset"</span></span>
@@ -600,20 +613,22 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 <span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>final_dataset_summary</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>final_dimensions</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 3
   dataset                      rows columns
   &lt;chr&gt;                       &lt;int&gt;   &lt;int&gt;
 1 Cleaned Orders              96470      12
-2 Final Supply Chain Dataset 110189      29</code></pre>
+2 Final Supply Chain Dataset 110189      30</code></pre>
 </div>
 </div>
-<p>The final dataset contains more rows than the cleaned orders dataset because one order can contain more than one item.</p>
+<p>The final analytical dataset contains more rows than the cleaned orders dataset because one order can contain multiple items.</p>
+<p>This means the final dataset is analyzed at the <strong>order-item level</strong>, while the cleaned orders dataset contains one row per order.</p>
 </section>
 <section id="final-dataset-structure" class="level2">
 <h2 class="anchored" data-anchor-id="final-dataset-structure">Final dataset structure</h2>
+<p>I reviewed the final analytical dataset to confirm that the expected fulfillment, seller, freight, price, and product variables are available.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -621,7 +636,7 @@ $ seller_state           &lt;chr&gt; "SP", "SP", "RJ", "SP", "SP", "RJ", "PE", "
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 110,189
-Columns: 29
+Columns: 30
 $ order_id                      &lt;chr&gt; "e481f51cbdc54678b7cc49136f2d6af7", "53c…
 $ customer_id                   &lt;chr&gt; "9ef432eb6251297304e76186b10a928d", "b08…
 $ order_status                  &lt;chr&gt; "delivered", "delivered", "delivered", "…
@@ -650,25 +665,19 @@ $ product_photos_qty            &lt;dbl&gt; 4, 1, 1, 3, 4, 1, 1, 2, 1, 1, 1, 1, 
 $ product_weight_g              &lt;dbl&gt; 500, 400, 420, 450, 250, 7150, 50, 300, …
 $ product_length_cm             &lt;dbl&gt; 19, 19, 24, 30, 51, 65, 16, 35, 42, 42, …
 $ product_height_cm             &lt;dbl&gt; 8, 13, 19, 10, 15, 10, 16, 35, 41, 12, 1…
-$ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 39, …</code></pre>
+$ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 39, …
+$ freight_ratio                 &lt;dbl&gt; 0.29076359, 0.19174389, 0.12020013, 0.60…</code></pre>
 </div>
 </div>
 <p>The final dataset combines fulfillment, seller, freight, price, and product information in one analytical table.</p>
 </section>
-<section id="creating-the-freight-to-price-ratio" class="level2">
-<h2 class="anchored" data-anchor-id="creating-the-freight-to-price-ratio">Creating the freight-to-price ratio</h2>
+<section id="freight-to-price-ratio" class="level2">
+<h2 class="anchored" data-anchor-id="freight-to-price-ratio">Freight-to-price ratio</h2>
 <p>Freight cost alone does not show how large the shipping cost is relative to the value of the product.</p>
-<p>For example, a freight charge of 20 has a much larger impact on a product priced at 40 than on a product priced at 400.</p>
-<p>I therefore created a freight-to-price ratio.</p>
-<div class="cell">
-<details class="code-fold">
-<summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>supply_chain_data <span class="ot">&lt;-</span> supply_chain_data <span class="sc">|&gt;</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">freight_ratio =</span> freight_value <span class="sc">/</span> price</span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</details>
-</div>
+<p>For example, the same freight charge can represent a small portion of an expensive product’s value but a large portion of a lower-priced product’s value.</p>
+<p>The <code>freight_ratio</code> variable was therefore created as:</p>
+<pre class="text"><code>freight value / product price</code></pre>
+<p>I checked its distribution before using it in the exploration.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -689,8 +698,9 @@ $ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 
 1       0   0.321  0.232    26.2</code></pre>
 </div>
 </div>
-<p>The large difference between the median and maximum also shows that some products have unusually high freight costs relative to their price.</p>
-<p>Rather than automatically removing those observations, I keep them because they may represent real costly shipments that are useful for the business analysis.</p>
+<p>The large difference between the median and maximum shows that some products have unusually high freight costs relative to their price.</p>
+<p>I did not automatically remove these observations because they may represent real costly shipments that are relevant to the business question.</p>
+<p>Instead, their effect is examined during the exploratory analysis.</p>
 </section>
 <section id="variables-used-in-the-exploration" class="level2">
 <h2 class="anchored" data-anchor-id="variables-used-in-the-exploration">Variables used in the exploration</h2>
@@ -700,6 +710,8 @@ $ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 
 <li><code>delivery_days</code> — actual delivery duration</li>
 <li><code>estimated_days</code> — estimated delivery duration</li>
 <li><code>delivery_status</code> — on-time or late delivery</li>
+<li><code>purchase_year</code> — purchase year</li>
+<li><code>purchase_month</code> — purchase month</li>
 <li><code>price</code> — product selling price</li>
 <li><code>freight_value</code> — freight cost</li>
 <li><code>freight_ratio</code> — freight cost relative to product price</li>
@@ -707,6 +719,7 @@ $ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 
 <li><code>seller_id</code> — seller identifier</li>
 <li><code>order_id</code> — order identifier</li>
 </ul>
+<p>These variables provide the information needed to compare seller scale, delivery reliability, freight burden, marketplace activity over time, and product-related shipping costs.</p>
 
 
 <!-- -->
@@ -1167,330 +1180,370 @@ $ product_width_cm              &lt;dbl&gt; 13, 19, 21, 20, 15, 65, 17, 15, 42, 
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Data"</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="fu">## The dataset</span></span>
-<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>This project uses four e-commerce datasets:</span>
-<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>orders</span>
-<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>order items</span>
-<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>products</span>
-<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>sellers</span>
-<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.</span>
-<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
-<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="an">toc:</span><span class="co"> true</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a><span class="an">toc-depth:</span><span class="co"> 2</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a><span class="an">toc-title:</span><span class="co"> "Data roadmap"</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>orders <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/orders.csv"</span>)</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>order_items <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/order_items.csv"</span>)</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>products <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/products.csv"</span>)</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>sellers <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/sellers.csv"</span>)</span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="fu">## The dataset</span></span>
 <span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>orders <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/orders.csv"</span>)</span>
-<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>order_items <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/order_items.csv"</span>)</span>
-<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>products <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/products.csv"</span>)</span>
-<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>sellers <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"data/sellers.csv"</span>)</span>
-<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a><span class="fu">## Original dataset dimensions</span></span>
-<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a>Before cleaning or joining the data, I first checked the size of each dataset.</span>
-<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-38"><a href="#cb34-38" aria-hidden="true" tabindex="-1"></a>dataset_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-39"><a href="#cb34-39" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
-<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
-<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
-<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
-<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
-<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
-<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders),</span>
-<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(order_items),</span>
-<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(products),</span>
-<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(sellers)</span>
-<span id="cb34-50"><a href="#cb34-50" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-51"><a href="#cb34-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
-<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders),</span>
-<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(order_items),</span>
-<span id="cb34-54"><a href="#cb34-54" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(products),</span>
-<span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(sellers)</span>
-<span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a>dataset_dimensions</span>
-<span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>This project uses four e-commerce datasets:</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>orders</span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>order items</span>
+<span id="cb34-29"><a href="#cb34-29" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>products</span>
+<span id="cb34-30"><a href="#cb34-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>sellers</span>
+<span id="cb34-31"><a href="#cb34-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-32"><a href="#cb34-32" aria-hidden="true" tabindex="-1"></a>Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.</span>
+<span id="cb34-33"><a href="#cb34-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-34"><a href="#cb34-34" aria-hidden="true" tabindex="-1"></a><span class="fu">## Original dataset dimensions</span></span>
+<span id="cb34-35"><a href="#cb34-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-36"><a href="#cb34-36" aria-hidden="true" tabindex="-1"></a>Before cleaning or joining the data, I first checked the size of each dataset.</span>
+<span id="cb34-37"><a href="#cb34-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-40"><a href="#cb34-40" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-41"><a href="#cb34-41" aria-hidden="true" tabindex="-1"></a>original_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-42"><a href="#cb34-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
+<span id="cb34-43"><a href="#cb34-43" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
+<span id="cb34-44"><a href="#cb34-44" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
+<span id="cb34-45"><a href="#cb34-45" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
+<span id="cb34-46"><a href="#cb34-46" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
+<span id="cb34-47"><a href="#cb34-47" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-48"><a href="#cb34-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
+<span id="cb34-49"><a href="#cb34-49" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders),</span>
+<span id="cb34-50"><a href="#cb34-50" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(order_items),</span>
+<span id="cb34-51"><a href="#cb34-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(products),</span>
+<span id="cb34-52"><a href="#cb34-52" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(sellers)</span>
+<span id="cb34-53"><a href="#cb34-53" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-54"><a href="#cb34-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
+<span id="cb34-55"><a href="#cb34-55" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders),</span>
+<span id="cb34-56"><a href="#cb34-56" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(order_items),</span>
+<span id="cb34-57"><a href="#cb34-57" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(products),</span>
+<span id="cb34-58"><a href="#cb34-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(sellers)</span>
+<span id="cb34-59"><a href="#cb34-59" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-60"><a href="#cb34-60" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb34-61"><a href="#cb34-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a>The orders table contains one row per order, while the order-items table may contain multiple rows for the same order because one order can contain several products.</span>
-<span id="cb34-63"><a href="#cb34-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-64"><a href="#cb34-64" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data structure</span></span>
-<span id="cb34-65"><a href="#cb34-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-66"><a href="#cb34-66" aria-hidden="true" tabindex="-1"></a>I reviewed the structure of each dataset to understand the available variables and their data types.</span>
-<span id="cb34-67"><a href="#cb34-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-68"><a href="#cb34-68" aria-hidden="true" tabindex="-1"></a><span class="fu">### Orders</span></span>
-<span id="cb34-69"><a href="#cb34-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-72"><a href="#cb34-72" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-73"><a href="#cb34-73" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(orders)</span>
-<span id="cb34-74"><a href="#cb34-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-75"><a href="#cb34-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-76"><a href="#cb34-76" aria-hidden="true" tabindex="-1"></a>The orders dataset contains order status, purchase dates, delivery dates, delivery duration, and estimated delivery duration.</span>
-<span id="cb34-77"><a href="#cb34-77" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-78"><a href="#cb34-78" aria-hidden="true" tabindex="-1"></a><span class="fu">### Order items</span></span>
-<span id="cb34-79"><a href="#cb34-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-82"><a href="#cb34-82" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-83"><a href="#cb34-83" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(order_items)</span>
-<span id="cb34-84"><a href="#cb34-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-85"><a href="#cb34-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-86"><a href="#cb34-86" aria-hidden="true" tabindex="-1"></a>The order-items dataset connects orders with products and sellers and includes product price and freight value.</span>
-<span id="cb34-87"><a href="#cb34-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-88"><a href="#cb34-88" aria-hidden="true" tabindex="-1"></a><span class="fu">### Products</span></span>
-<span id="cb34-89"><a href="#cb34-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-92"><a href="#cb34-92" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-93"><a href="#cb34-93" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(products)</span>
-<span id="cb34-94"><a href="#cb34-94" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-95"><a href="#cb34-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-96"><a href="#cb34-96" aria-hidden="true" tabindex="-1"></a>The products dataset contains product category and physical characteristics such as weight, length, height, and width.</span>
-<span id="cb34-97"><a href="#cb34-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-98"><a href="#cb34-98" aria-hidden="true" tabindex="-1"></a><span class="fu">### Sellers</span></span>
-<span id="cb34-99"><a href="#cb34-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-102"><a href="#cb34-102" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-103"><a href="#cb34-103" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sellers)</span>
-<span id="cb34-104"><a href="#cb34-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-105"><a href="#cb34-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a>The sellers dataset provides seller location information including seller city and state.</span>
-<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-108"><a href="#cb34-108" aria-hidden="true" tabindex="-1"></a><span class="fu">## Missing values</span></span>
-<span id="cb34-109"><a href="#cb34-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-110"><a href="#cb34-110" aria-hidden="true" tabindex="-1"></a>Before deciding how to clean the data, I checked how many missing values appear in each dataset.</span>
-<span id="cb34-111"><a href="#cb34-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-114"><a href="#cb34-114" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-115"><a href="#cb34-115" aria-hidden="true" tabindex="-1"></a>missing_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-116"><a href="#cb34-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
-<span id="cb34-117"><a href="#cb34-117" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
-<span id="cb34-118"><a href="#cb34-118" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
-<span id="cb34-119"><a href="#cb34-119" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
-<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
-<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-122"><a href="#cb34-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">c</span>(</span>
-<span id="cb34-123"><a href="#cb34-123" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(orders)),</span>
-<span id="cb34-124"><a href="#cb34-124" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(order_items)),</span>
-<span id="cb34-125"><a href="#cb34-125" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(products)),</span>
-<span id="cb34-126"><a href="#cb34-126" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(sellers))</span>
-<span id="cb34-127"><a href="#cb34-127" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-128"><a href="#cb34-128" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-129"><a href="#cb34-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-130"><a href="#cb34-130" aria-hidden="true" tabindex="-1"></a>missing_summary</span>
-<span id="cb34-131"><a href="#cb34-131" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-62"><a href="#cb34-62" aria-hidden="true" tabindex="-1"></a>original_dimensions</span>
+<span id="cb34-63"><a href="#cb34-63" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-64"><a href="#cb34-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-65"><a href="#cb34-65" aria-hidden="true" tabindex="-1"></a>The orders table contains one row per order, while the order-items table can contain multiple rows for the same order because one order may contain several products.</span>
+<span id="cb34-66"><a href="#cb34-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-67"><a href="#cb34-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data structure</span></span>
+<span id="cb34-68"><a href="#cb34-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-69"><a href="#cb34-69" aria-hidden="true" tabindex="-1"></a>I reviewed the structure of each dataset to understand the available variables and their data types.</span>
+<span id="cb34-70"><a href="#cb34-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-71"><a href="#cb34-71" aria-hidden="true" tabindex="-1"></a><span class="fu">### Orders</span></span>
+<span id="cb34-72"><a href="#cb34-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-75"><a href="#cb34-75" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-76"><a href="#cb34-76" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(orders)</span>
+<span id="cb34-77"><a href="#cb34-77" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-78"><a href="#cb34-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-79"><a href="#cb34-79" aria-hidden="true" tabindex="-1"></a>The orders dataset contains order status, purchase dates, delivery dates, delivery duration, and estimated delivery duration.</span>
+<span id="cb34-80"><a href="#cb34-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-81"><a href="#cb34-81" aria-hidden="true" tabindex="-1"></a><span class="fu">### Order items</span></span>
+<span id="cb34-82"><a href="#cb34-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-85"><a href="#cb34-85" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-86"><a href="#cb34-86" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(order_items)</span>
+<span id="cb34-87"><a href="#cb34-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-88"><a href="#cb34-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-89"><a href="#cb34-89" aria-hidden="true" tabindex="-1"></a>The order-items dataset connects orders with products and sellers and includes product price and freight value.</span>
+<span id="cb34-90"><a href="#cb34-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-91"><a href="#cb34-91" aria-hidden="true" tabindex="-1"></a><span class="fu">### Products</span></span>
+<span id="cb34-92"><a href="#cb34-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-95"><a href="#cb34-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-96"><a href="#cb34-96" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(products)</span>
+<span id="cb34-97"><a href="#cb34-97" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-98"><a href="#cb34-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-99"><a href="#cb34-99" aria-hidden="true" tabindex="-1"></a>The products dataset contains product category information and physical characteristics such as weight, length, height, and width.</span>
+<span id="cb34-100"><a href="#cb34-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-101"><a href="#cb34-101" aria-hidden="true" tabindex="-1"></a><span class="fu">### Sellers</span></span>
+<span id="cb34-102"><a href="#cb34-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-105"><a href="#cb34-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-106"><a href="#cb34-106" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(sellers)</span>
+<span id="cb34-107"><a href="#cb34-107" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-108"><a href="#cb34-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-109"><a href="#cb34-109" aria-hidden="true" tabindex="-1"></a>The sellers dataset provides seller location information including seller city and state.</span>
+<span id="cb34-110"><a href="#cb34-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-111"><a href="#cb34-111" aria-hidden="true" tabindex="-1"></a><span class="fu">## Missing values</span></span>
+<span id="cb34-112"><a href="#cb34-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-113"><a href="#cb34-113" aria-hidden="true" tabindex="-1"></a>Before deciding how to clean the data, I checked how many missing values appear in each dataset.</span>
+<span id="cb34-114"><a href="#cb34-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-117"><a href="#cb34-117" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-118"><a href="#cb34-118" aria-hidden="true" tabindex="-1"></a>missing_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-119"><a href="#cb34-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
+<span id="cb34-120"><a href="#cb34-120" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
+<span id="cb34-121"><a href="#cb34-121" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
+<span id="cb34-122"><a href="#cb34-122" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
+<span id="cb34-123"><a href="#cb34-123" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
+<span id="cb34-124"><a href="#cb34-124" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-125"><a href="#cb34-125" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">c</span>(</span>
+<span id="cb34-126"><a href="#cb34-126" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(orders)),</span>
+<span id="cb34-127"><a href="#cb34-127" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(order_items)),</span>
+<span id="cb34-128"><a href="#cb34-128" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(products)),</span>
+<span id="cb34-129"><a href="#cb34-129" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">is.na</span>(sellers))</span>
+<span id="cb34-130"><a href="#cb34-130" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-131"><a href="#cb34-131" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb34-132"><a href="#cb34-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-133"><a href="#cb34-133" aria-hidden="true" tabindex="-1"></a>The orders and products datasets contain missing values, so I looked more closely at which variables are affected.</span>
-<span id="cb34-134"><a href="#cb34-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-135"><a href="#cb34-135" aria-hidden="true" tabindex="-1"></a><span class="fu">### Missing values in orders</span></span>
-<span id="cb34-136"><a href="#cb34-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-139"><a href="#cb34-139" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-140"><a href="#cb34-140" aria-hidden="true" tabindex="-1"></a>orders_missing <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-141"><a href="#cb34-141" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">names</span>(orders),</span>
-<span id="cb34-142"><a href="#cb34-142" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(orders))</span>
-<span id="cb34-143"><a href="#cb34-143" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb34-144"><a href="#cb34-144" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(missing_values <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb34-145"><a href="#cb34-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-146"><a href="#cb34-146" aria-hidden="true" tabindex="-1"></a>orders_missing</span>
-<span id="cb34-147"><a href="#cb34-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-133"><a href="#cb34-133" aria-hidden="true" tabindex="-1"></a>missing_summary</span>
+<span id="cb34-134"><a href="#cb34-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-135"><a href="#cb34-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-136"><a href="#cb34-136" aria-hidden="true" tabindex="-1"></a>The orders and products datasets contain missing values, so I looked more closely at which variables are affected.</span>
+<span id="cb34-137"><a href="#cb34-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-138"><a href="#cb34-138" aria-hidden="true" tabindex="-1"></a><span class="fu">### Missing values in orders</span></span>
+<span id="cb34-139"><a href="#cb34-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-142"><a href="#cb34-142" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-143"><a href="#cb34-143" aria-hidden="true" tabindex="-1"></a>orders_missing <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-144"><a href="#cb34-144" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">names</span>(orders),</span>
+<span id="cb34-145"><a href="#cb34-145" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(orders))</span>
+<span id="cb34-146"><a href="#cb34-146" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb34-147"><a href="#cb34-147" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(missing_values <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
 <span id="cb34-148"><a href="#cb34-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-149"><a href="#cb34-149" aria-hidden="true" tabindex="-1"></a>The missing order values mainly affect delivery information.</span>
-<span id="cb34-150"><a href="#cb34-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-151"><a href="#cb34-151" aria-hidden="true" tabindex="-1"></a>Because this project evaluates fulfillment performance, orders without a usable delivery duration cannot be included in the delivery analysis.</span>
-<span id="cb34-152"><a href="#cb34-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-153"><a href="#cb34-153" aria-hidden="true" tabindex="-1"></a><span class="fu">### Missing values in products</span></span>
-<span id="cb34-154"><a href="#cb34-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-157"><a href="#cb34-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-158"><a href="#cb34-158" aria-hidden="true" tabindex="-1"></a>products_missing <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-159"><a href="#cb34-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">names</span>(products),</span>
-<span id="cb34-160"><a href="#cb34-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(products))</span>
-<span id="cb34-161"><a href="#cb34-161" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
-<span id="cb34-162"><a href="#cb34-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(missing_values <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb34-163"><a href="#cb34-163" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-164"><a href="#cb34-164" aria-hidden="true" tabindex="-1"></a>products_missing</span>
-<span id="cb34-165"><a href="#cb34-165" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-149"><a href="#cb34-149" aria-hidden="true" tabindex="-1"></a>orders_missing</span>
+<span id="cb34-150"><a href="#cb34-150" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-151"><a href="#cb34-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-152"><a href="#cb34-152" aria-hidden="true" tabindex="-1"></a>The missing values in the orders dataset affect delivery information.</span>
+<span id="cb34-153"><a href="#cb34-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-154"><a href="#cb34-154" aria-hidden="true" tabindex="-1"></a>Because this project evaluates fulfillment performance, orders without a usable delivery duration cannot be included in the delivery analysis.</span>
+<span id="cb34-155"><a href="#cb34-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-156"><a href="#cb34-156" aria-hidden="true" tabindex="-1"></a><span class="fu">### Missing values in products</span></span>
+<span id="cb34-157"><a href="#cb34-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-160"><a href="#cb34-160" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-161"><a href="#cb34-161" aria-hidden="true" tabindex="-1"></a>products_missing <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-162"><a href="#cb34-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">variable =</span> <span class="fu">names</span>(products),</span>
+<span id="cb34-163"><a href="#cb34-163" aria-hidden="true" tabindex="-1"></a>  <span class="at">missing_values =</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(products))</span>
+<span id="cb34-164"><a href="#cb34-164" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb34-165"><a href="#cb34-165" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(missing_values <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
 <span id="cb34-166"><a href="#cb34-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-167"><a href="#cb34-167" aria-hidden="true" tabindex="-1"></a>Some product category, description, and physical-characteristic fields contain missing values.</span>
-<span id="cb34-168"><a href="#cb34-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-169"><a href="#cb34-169" aria-hidden="true" tabindex="-1"></a>These records are retained because those variables are not required for every part of the analysis. Missing product weight is removed only when a chart specifically uses product weight.</span>
-<span id="cb34-170"><a href="#cb34-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-171"><a href="#cb34-171" aria-hidden="true" tabindex="-1"></a><span class="fu">## Duplicate rows</span></span>
-<span id="cb34-172"><a href="#cb34-172" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-173"><a href="#cb34-173" aria-hidden="true" tabindex="-1"></a>I also checked for complete duplicate rows in each original dataset.</span>
-<span id="cb34-174"><a href="#cb34-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-177"><a href="#cb34-177" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-178"><a href="#cb34-178" aria-hidden="true" tabindex="-1"></a>duplicate_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-179"><a href="#cb34-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
-<span id="cb34-180"><a href="#cb34-180" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
-<span id="cb34-181"><a href="#cb34-181" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
-<span id="cb34-182"><a href="#cb34-182" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
-<span id="cb34-183"><a href="#cb34-183" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
-<span id="cb34-184"><a href="#cb34-184" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-185"><a href="#cb34-185" aria-hidden="true" tabindex="-1"></a>  <span class="at">duplicate_rows =</span> <span class="fu">c</span>(</span>
-<span id="cb34-186"><a href="#cb34-186" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(orders)),</span>
-<span id="cb34-187"><a href="#cb34-187" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(order_items)),</span>
-<span id="cb34-188"><a href="#cb34-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(products)),</span>
-<span id="cb34-189"><a href="#cb34-189" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(sellers))</span>
-<span id="cb34-190"><a href="#cb34-190" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-191"><a href="#cb34-191" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-192"><a href="#cb34-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-193"><a href="#cb34-193" aria-hidden="true" tabindex="-1"></a>duplicate_summary</span>
-<span id="cb34-194"><a href="#cb34-194" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-195"><a href="#cb34-195" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-196"><a href="#cb34-196" aria-hidden="true" tabindex="-1"></a>This check confirms whether any complete duplicate records need to be removed before continuing.</span>
+<span id="cb34-167"><a href="#cb34-167" aria-hidden="true" tabindex="-1"></a>products_missing</span>
+<span id="cb34-168"><a href="#cb34-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-169"><a href="#cb34-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-170"><a href="#cb34-170" aria-hidden="true" tabindex="-1"></a>Some product category, description, and physical-characteristic fields contain missing values.</span>
+<span id="cb34-171"><a href="#cb34-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-172"><a href="#cb34-172" aria-hidden="true" tabindex="-1"></a>These records are retained because those variables are not required for every part of the analysis.</span>
+<span id="cb34-173"><a href="#cb34-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-174"><a href="#cb34-174" aria-hidden="true" tabindex="-1"></a>For analyses involving product weight, records with missing product weight are excluded only from that specific analysis rather than from the full dataset.</span>
+<span id="cb34-175"><a href="#cb34-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-176"><a href="#cb34-176" aria-hidden="true" tabindex="-1"></a><span class="fu">## Duplicate rows</span></span>
+<span id="cb34-177"><a href="#cb34-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-178"><a href="#cb34-178" aria-hidden="true" tabindex="-1"></a>I also checked for complete duplicate rows in each original dataset.</span>
+<span id="cb34-179"><a href="#cb34-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-182"><a href="#cb34-182" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-183"><a href="#cb34-183" aria-hidden="true" tabindex="-1"></a>duplicate_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-184"><a href="#cb34-184" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
+<span id="cb34-185"><a href="#cb34-185" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Orders"</span>,</span>
+<span id="cb34-186"><a href="#cb34-186" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Order Items"</span>,</span>
+<span id="cb34-187"><a href="#cb34-187" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Products"</span>,</span>
+<span id="cb34-188"><a href="#cb34-188" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Sellers"</span></span>
+<span id="cb34-189"><a href="#cb34-189" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-190"><a href="#cb34-190" aria-hidden="true" tabindex="-1"></a>  <span class="at">duplicate_rows =</span> <span class="fu">c</span>(</span>
+<span id="cb34-191"><a href="#cb34-191" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(orders)),</span>
+<span id="cb34-192"><a href="#cb34-192" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(order_items)),</span>
+<span id="cb34-193"><a href="#cb34-193" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(products)),</span>
+<span id="cb34-194"><a href="#cb34-194" aria-hidden="true" tabindex="-1"></a>    <span class="fu">sum</span>(<span class="fu">duplicated</span>(sellers))</span>
+<span id="cb34-195"><a href="#cb34-195" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-196"><a href="#cb34-196" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb34-197"><a href="#cb34-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-198"><a href="#cb34-198" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cleaning the order data</span></span>
-<span id="cb34-199"><a href="#cb34-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-200"><a href="#cb34-200" aria-hidden="true" tabindex="-1"></a>The analysis focuses on completed deliveries.</span>
-<span id="cb34-201"><a href="#cb34-201" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-202"><a href="#cb34-202" aria-hidden="true" tabindex="-1"></a>I therefore kept only orders with a delivered status and a non-missing delivery duration.</span>
-<span id="cb34-203"><a href="#cb34-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-206"><a href="#cb34-206" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-207"><a href="#cb34-207" aria-hidden="true" tabindex="-1"></a>orders_clean <span class="ot">&lt;-</span> orders <span class="sc">|&gt;</span></span>
-<span id="cb34-208"><a href="#cb34-208" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(order_status <span class="sc">==</span> <span class="st">"delivered"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb34-209"><a href="#cb34-209" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(delivery_days))</span>
-<span id="cb34-210"><a href="#cb34-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-211"><a href="#cb34-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-212"><a href="#cb34-212" aria-hidden="true" tabindex="-1"></a>The effect of this cleaning step is shown below.</span>
-<span id="cb34-213"><a href="#cb34-213" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-216"><a href="#cb34-216" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-217"><a href="#cb34-217" aria-hidden="true" tabindex="-1"></a>order_cleaning_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-218"><a href="#cb34-218" aria-hidden="true" tabindex="-1"></a>  <span class="at">stage =</span> <span class="fu">c</span>(</span>
-<span id="cb34-219"><a href="#cb34-219" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Original Orders"</span>,</span>
-<span id="cb34-220"><a href="#cb34-220" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Delivered Orders"</span></span>
-<span id="cb34-221"><a href="#cb34-221" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-222"><a href="#cb34-222" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
-<span id="cb34-223"><a href="#cb34-223" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders),</span>
-<span id="cb34-224"><a href="#cb34-224" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders_clean)</span>
-<span id="cb34-225"><a href="#cb34-225" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-226"><a href="#cb34-226" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
-<span id="cb34-227"><a href="#cb34-227" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders),</span>
-<span id="cb34-228"><a href="#cb34-228" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders_clean)</span>
-<span id="cb34-229"><a href="#cb34-229" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-230"><a href="#cb34-230" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-231"><a href="#cb34-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-232"><a href="#cb34-232" aria-hidden="true" tabindex="-1"></a>order_cleaning_summary</span>
-<span id="cb34-233"><a href="#cb34-233" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-234"><a href="#cb34-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-235"><a href="#cb34-235" aria-hidden="true" tabindex="-1"></a>A delivery-status variable is then created by comparing the actual delivery duration with the estimated delivery duration.</span>
-<span id="cb34-236"><a href="#cb34-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-239"><a href="#cb34-239" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-240"><a href="#cb34-240" aria-hidden="true" tabindex="-1"></a>orders_clean <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
-<span id="cb34-241"><a href="#cb34-241" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb34-242"><a href="#cb34-242" aria-hidden="true" tabindex="-1"></a>    <span class="at">delivery_status =</span> <span class="fu">if_else</span>(</span>
-<span id="cb34-243"><a href="#cb34-243" aria-hidden="true" tabindex="-1"></a>      delivery_days <span class="sc">&lt;=</span> estimated_days,</span>
-<span id="cb34-244"><a href="#cb34-244" aria-hidden="true" tabindex="-1"></a>      <span class="st">"On Time"</span>,</span>
-<span id="cb34-245"><a href="#cb34-245" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Late"</span></span>
-<span id="cb34-246"><a href="#cb34-246" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb34-247"><a href="#cb34-247" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-248"><a href="#cb34-248" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-198"><a href="#cb34-198" aria-hidden="true" tabindex="-1"></a>duplicate_summary</span>
+<span id="cb34-199"><a href="#cb34-199" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-200"><a href="#cb34-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-201"><a href="#cb34-201" aria-hidden="true" tabindex="-1"></a>No complete duplicate rows were found in the four source datasets.</span>
+<span id="cb34-202"><a href="#cb34-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-203"><a href="#cb34-203" aria-hidden="true" tabindex="-1"></a>Therefore, no records needed to be removed because of complete duplication.</span>
+<span id="cb34-204"><a href="#cb34-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-205"><a href="#cb34-205" aria-hidden="true" tabindex="-1"></a><span class="fu">## Cleaning the order data</span></span>
+<span id="cb34-206"><a href="#cb34-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-207"><a href="#cb34-207" aria-hidden="true" tabindex="-1"></a>The analysis focuses on completed deliveries.</span>
+<span id="cb34-208"><a href="#cb34-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-209"><a href="#cb34-209" aria-hidden="true" tabindex="-1"></a>I therefore kept only orders with a delivered status and a non-missing delivery duration.</span>
+<span id="cb34-210"><a href="#cb34-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-213"><a href="#cb34-213" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-214"><a href="#cb34-214" aria-hidden="true" tabindex="-1"></a>orders_clean <span class="ot">&lt;-</span> orders <span class="sc">|&gt;</span></span>
+<span id="cb34-215"><a href="#cb34-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(order_status <span class="sc">==</span> <span class="st">"delivered"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb34-216"><a href="#cb34-216" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(delivery_days))</span>
+<span id="cb34-217"><a href="#cb34-217" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-218"><a href="#cb34-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-219"><a href="#cb34-219" aria-hidden="true" tabindex="-1"></a>The effect of this cleaning decision is shown below.</span>
+<span id="cb34-220"><a href="#cb34-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-223"><a href="#cb34-223" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-224"><a href="#cb34-224" aria-hidden="true" tabindex="-1"></a>cleaning_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-225"><a href="#cb34-225" aria-hidden="true" tabindex="-1"></a>  <span class="at">stage =</span> <span class="fu">c</span>(</span>
+<span id="cb34-226"><a href="#cb34-226" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Original Orders"</span>,</span>
+<span id="cb34-227"><a href="#cb34-227" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Delivered Orders"</span></span>
+<span id="cb34-228"><a href="#cb34-228" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-229"><a href="#cb34-229" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
+<span id="cb34-230"><a href="#cb34-230" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders),</span>
+<span id="cb34-231"><a href="#cb34-231" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders_clean)</span>
+<span id="cb34-232"><a href="#cb34-232" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-233"><a href="#cb34-233" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
+<span id="cb34-234"><a href="#cb34-234" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders),</span>
+<span id="cb34-235"><a href="#cb34-235" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders_clean)</span>
+<span id="cb34-236"><a href="#cb34-236" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-237"><a href="#cb34-237" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-238"><a href="#cb34-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-239"><a href="#cb34-239" aria-hidden="true" tabindex="-1"></a>cleaning_summary</span>
+<span id="cb34-240"><a href="#cb34-240" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-241"><a href="#cb34-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-242"><a href="#cb34-242" aria-hidden="true" tabindex="-1"></a>This cleaning step removed **`r nrow(orders) - nrow(orders_clean)` rows** from the original orders dataset.</span>
+<span id="cb34-243"><a href="#cb34-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-244"><a href="#cb34-244" aria-hidden="true" tabindex="-1"></a>These rows were excluded because the analysis focuses on completed orders with a usable delivery duration.</span>
+<span id="cb34-245"><a href="#cb34-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-246"><a href="#cb34-246" aria-hidden="true" tabindex="-1"></a>Keeping them would prevent a consistent comparison between actual delivery duration and estimated delivery duration.</span>
+<span id="cb34-247"><a href="#cb34-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-248"><a href="#cb34-248" aria-hidden="true" tabindex="-1"></a><span class="fu">## Creating delivery status</span></span>
 <span id="cb34-249"><a href="#cb34-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-252"><a href="#cb34-252" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-253"><a href="#cb34-253" aria-hidden="true" tabindex="-1"></a>delivery_status_summary <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
-<span id="cb34-254"><a href="#cb34-254" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(delivery_status) <span class="sc">|&gt;</span></span>
-<span id="cb34-255"><a href="#cb34-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb34-256"><a href="#cb34-256" aria-hidden="true" tabindex="-1"></a>    <span class="at">percent =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span></span>
-<span id="cb34-257"><a href="#cb34-257" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-258"><a href="#cb34-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-259"><a href="#cb34-259" aria-hidden="true" tabindex="-1"></a>delivery_status_summary</span>
-<span id="cb34-260"><a href="#cb34-260" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-261"><a href="#cb34-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-262"><a href="#cb34-262" aria-hidden="true" tabindex="-1"></a>This gives the analysis a consistent way to compare delivery reliability across seller groups.</span>
-<span id="cb34-263"><a href="#cb34-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-264"><a href="#cb34-264" aria-hidden="true" tabindex="-1"></a><span class="fu">## Building the analytical dataset</span></span>
-<span id="cb34-265"><a href="#cb34-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-266"><a href="#cb34-266" aria-hidden="true" tabindex="-1"></a>The cleaned order data is then joined with order-item, seller, and product information.</span>
-<span id="cb34-267"><a href="#cb34-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-270"><a href="#cb34-270" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-271"><a href="#cb34-271" aria-hidden="true" tabindex="-1"></a>supply_chain_data <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
-<span id="cb34-272"><a href="#cb34-272" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(order_items, <span class="at">by =</span> <span class="st">"order_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb34-273"><a href="#cb34-273" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sellers, <span class="at">by =</span> <span class="st">"seller_id"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb34-274"><a href="#cb34-274" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(products, <span class="at">by =</span> <span class="st">"product_id"</span>)</span>
-<span id="cb34-275"><a href="#cb34-275" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-276"><a href="#cb34-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-277"><a href="#cb34-277" aria-hidden="true" tabindex="-1"></a>I created <span class="in">`supply_chain_data`</span> so the main supply chain variables are available in one table.</span>
+<span id="cb34-250"><a href="#cb34-250" aria-hidden="true" tabindex="-1"></a>A delivery-performance variable is created by comparing actual delivery duration with estimated delivery duration.</span>
+<span id="cb34-251"><a href="#cb34-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-254"><a href="#cb34-254" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-255"><a href="#cb34-255" aria-hidden="true" tabindex="-1"></a>orders_clean <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
+<span id="cb34-256"><a href="#cb34-256" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb34-257"><a href="#cb34-257" aria-hidden="true" tabindex="-1"></a>    <span class="at">delivery_status =</span> <span class="fu">if_else</span>(</span>
+<span id="cb34-258"><a href="#cb34-258" aria-hidden="true" tabindex="-1"></a>      delivery_days <span class="sc">&lt;=</span> estimated_days,</span>
+<span id="cb34-259"><a href="#cb34-259" aria-hidden="true" tabindex="-1"></a>      <span class="st">"On Time"</span>,</span>
+<span id="cb34-260"><a href="#cb34-260" aria-hidden="true" tabindex="-1"></a>      <span class="st">"Late"</span></span>
+<span id="cb34-261"><a href="#cb34-261" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb34-262"><a href="#cb34-262" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-263"><a href="#cb34-263" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-264"><a href="#cb34-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-265"><a href="#cb34-265" aria-hidden="true" tabindex="-1"></a>I then checked how many cleaned orders fall into each delivery category.</span>
+<span id="cb34-266"><a href="#cb34-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-269"><a href="#cb34-269" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-270"><a href="#cb34-270" aria-hidden="true" tabindex="-1"></a>delivery_status_summary <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
+<span id="cb34-271"><a href="#cb34-271" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(delivery_status) <span class="sc">|&gt;</span></span>
+<span id="cb34-272"><a href="#cb34-272" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb34-273"><a href="#cb34-273" aria-hidden="true" tabindex="-1"></a>    <span class="at">percent =</span> n <span class="sc">/</span> <span class="fu">sum</span>(n) <span class="sc">*</span> <span class="dv">100</span></span>
+<span id="cb34-274"><a href="#cb34-274" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-275"><a href="#cb34-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-276"><a href="#cb34-276" aria-hidden="true" tabindex="-1"></a>delivery_status_summary</span>
+<span id="cb34-277"><a href="#cb34-277" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb34-278"><a href="#cb34-278" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-279"><a href="#cb34-279" aria-hidden="true" tabindex="-1"></a>This allows delivery performance, seller location, freight cost, product price, and product characteristics to be analyzed together.</span>
+<span id="cb34-279"><a href="#cb34-279" aria-hidden="true" tabindex="-1"></a>This variable gives the analysis a consistent way to compare delivery reliability across seller groups.</span>
 <span id="cb34-280"><a href="#cb34-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-281"><a href="#cb34-281" aria-hidden="true" tabindex="-1"></a><span class="fu">## Final dataset dimensions</span></span>
+<span id="cb34-281"><a href="#cb34-281" aria-hidden="true" tabindex="-1"></a><span class="fu">## Building the analytical dataset</span></span>
 <span id="cb34-282"><a href="#cb34-282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-285"><a href="#cb34-285" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-286"><a href="#cb34-286" aria-hidden="true" tabindex="-1"></a>final_dataset_summary <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb34-287"><a href="#cb34-287" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
-<span id="cb34-288"><a href="#cb34-288" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Orders"</span>,</span>
-<span id="cb34-289"><a href="#cb34-289" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Final Supply Chain Dataset"</span></span>
-<span id="cb34-290"><a href="#cb34-290" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-291"><a href="#cb34-291" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
-<span id="cb34-292"><a href="#cb34-292" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders_clean),</span>
-<span id="cb34-293"><a href="#cb34-293" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(supply_chain_data)</span>
-<span id="cb34-294"><a href="#cb34-294" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb34-295"><a href="#cb34-295" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
-<span id="cb34-296"><a href="#cb34-296" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders_clean),</span>
-<span id="cb34-297"><a href="#cb34-297" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(supply_chain_data)</span>
-<span id="cb34-298"><a href="#cb34-298" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-299"><a href="#cb34-299" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb34-300"><a href="#cb34-300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-301"><a href="#cb34-301" aria-hidden="true" tabindex="-1"></a>final_dataset_summary</span>
-<span id="cb34-302"><a href="#cb34-302" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-303"><a href="#cb34-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-304"><a href="#cb34-304" aria-hidden="true" tabindex="-1"></a>The final dataset contains more rows than the cleaned orders dataset because one order can contain more than one item.</span>
+<span id="cb34-283"><a href="#cb34-283" aria-hidden="true" tabindex="-1"></a>The cleaned order data is then joined with order-item, seller, and product information.</span>
+<span id="cb34-284"><a href="#cb34-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-287"><a href="#cb34-287" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-288"><a href="#cb34-288" aria-hidden="true" tabindex="-1"></a>supply_chain_data <span class="ot">&lt;-</span> orders_clean <span class="sc">|&gt;</span></span>
+<span id="cb34-289"><a href="#cb34-289" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb34-290"><a href="#cb34-290" aria-hidden="true" tabindex="-1"></a>    order_items,</span>
+<span id="cb34-291"><a href="#cb34-291" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"order_id"</span></span>
+<span id="cb34-292"><a href="#cb34-292" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb34-293"><a href="#cb34-293" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb34-294"><a href="#cb34-294" aria-hidden="true" tabindex="-1"></a>    sellers,</span>
+<span id="cb34-295"><a href="#cb34-295" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"seller_id"</span></span>
+<span id="cb34-296"><a href="#cb34-296" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb34-297"><a href="#cb34-297" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb34-298"><a href="#cb34-298" aria-hidden="true" tabindex="-1"></a>    products,</span>
+<span id="cb34-299"><a href="#cb34-299" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"product_id"</span></span>
+<span id="cb34-300"><a href="#cb34-300" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb34-301"><a href="#cb34-301" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb34-302"><a href="#cb34-302" aria-hidden="true" tabindex="-1"></a>    <span class="at">freight_ratio =</span> freight_value <span class="sc">/</span> price</span>
+<span id="cb34-303"><a href="#cb34-303" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-304"><a href="#cb34-304" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb34-305"><a href="#cb34-305" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-306"><a href="#cb34-306" aria-hidden="true" tabindex="-1"></a><span class="fu">## Final dataset structure</span></span>
+<span id="cb34-306"><a href="#cb34-306" aria-hidden="true" tabindex="-1"></a>I created <span class="in">`supply_chain_data`</span> so the main supply-chain variables are available in one table.</span>
 <span id="cb34-307"><a href="#cb34-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-310"><a href="#cb34-310" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-311"><a href="#cb34-311" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(supply_chain_data)</span>
-<span id="cb34-312"><a href="#cb34-312" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-308"><a href="#cb34-308" aria-hidden="true" tabindex="-1"></a>This allows delivery performance, seller location, freight cost, product price, and product characteristics to be analyzed together.</span>
+<span id="cb34-309"><a href="#cb34-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-310"><a href="#cb34-310" aria-hidden="true" tabindex="-1"></a><span class="fu">## Final dataset dimensions</span></span>
+<span id="cb34-311"><a href="#cb34-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-312"><a href="#cb34-312" aria-hidden="true" tabindex="-1"></a>After cleaning, joining, and creating the freight-to-price ratio, I checked the dimensions of the analytical dataset.</span>
 <span id="cb34-313"><a href="#cb34-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-314"><a href="#cb34-314" aria-hidden="true" tabindex="-1"></a>The final dataset combines fulfillment, seller, freight, price, and product information in one analytical table.</span>
-<span id="cb34-315"><a href="#cb34-315" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-316"><a href="#cb34-316" aria-hidden="true" tabindex="-1"></a><span class="fu">## Creating the freight-to-price ratio</span></span>
-<span id="cb34-317"><a href="#cb34-317" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-318"><a href="#cb34-318" aria-hidden="true" tabindex="-1"></a>Freight cost alone does not show how large the shipping cost is relative to the value of the product.</span>
-<span id="cb34-319"><a href="#cb34-319" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-320"><a href="#cb34-320" aria-hidden="true" tabindex="-1"></a>For example, a freight charge of 20 has a much larger impact on a product priced at 40 than on a product priced at 400.</span>
-<span id="cb34-321"><a href="#cb34-321" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-322"><a href="#cb34-322" aria-hidden="true" tabindex="-1"></a>I therefore created a freight-to-price ratio.</span>
-<span id="cb34-323"><a href="#cb34-323" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-326"><a href="#cb34-326" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-327"><a href="#cb34-327" aria-hidden="true" tabindex="-1"></a>supply_chain_data <span class="ot">&lt;-</span> supply_chain_data <span class="sc">|&gt;</span></span>
-<span id="cb34-328"><a href="#cb34-328" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb34-329"><a href="#cb34-329" aria-hidden="true" tabindex="-1"></a>    <span class="at">freight_ratio =</span> freight_value <span class="sc">/</span> price</span>
-<span id="cb34-330"><a href="#cb34-330" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-331"><a href="#cb34-331" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-332"><a href="#cb34-332" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-335"><a href="#cb34-335" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb34-336"><a href="#cb34-336" aria-hidden="true" tabindex="-1"></a>freight_ratio_summary <span class="ot">&lt;-</span> supply_chain_data <span class="sc">|&gt;</span></span>
-<span id="cb34-337"><a href="#cb34-337" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb34-338"><a href="#cb34-338" aria-hidden="true" tabindex="-1"></a>    <span class="at">minimum =</span> <span class="fu">min</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-339"><a href="#cb34-339" aria-hidden="true" tabindex="-1"></a>    <span class="at">average =</span> <span class="fu">mean</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-340"><a href="#cb34-340" aria-hidden="true" tabindex="-1"></a>    <span class="at">median =</span> <span class="fu">median</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb34-341"><a href="#cb34-341" aria-hidden="true" tabindex="-1"></a>    <span class="at">maximum =</span> <span class="fu">max</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb34-342"><a href="#cb34-342" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb34-343"><a href="#cb34-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-344"><a href="#cb34-344" aria-hidden="true" tabindex="-1"></a>freight_ratio_summary</span>
-<span id="cb34-345"><a href="#cb34-345" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb34-346"><a href="#cb34-346" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-347"><a href="#cb34-347" aria-hidden="true" tabindex="-1"></a>The large difference between the median and maximum also shows that some products have unusually high freight costs relative to their price.</span>
+<span id="cb34-316"><a href="#cb34-316" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-317"><a href="#cb34-317" aria-hidden="true" tabindex="-1"></a>final_dimensions <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb34-318"><a href="#cb34-318" aria-hidden="true" tabindex="-1"></a>  <span class="at">dataset =</span> <span class="fu">c</span>(</span>
+<span id="cb34-319"><a href="#cb34-319" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Cleaned Orders"</span>,</span>
+<span id="cb34-320"><a href="#cb34-320" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Final Supply Chain Dataset"</span></span>
+<span id="cb34-321"><a href="#cb34-321" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-322"><a href="#cb34-322" aria-hidden="true" tabindex="-1"></a>  <span class="at">rows =</span> <span class="fu">c</span>(</span>
+<span id="cb34-323"><a href="#cb34-323" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(orders_clean),</span>
+<span id="cb34-324"><a href="#cb34-324" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(supply_chain_data)</span>
+<span id="cb34-325"><a href="#cb34-325" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb34-326"><a href="#cb34-326" aria-hidden="true" tabindex="-1"></a>  <span class="at">columns =</span> <span class="fu">c</span>(</span>
+<span id="cb34-327"><a href="#cb34-327" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(orders_clean),</span>
+<span id="cb34-328"><a href="#cb34-328" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ncol</span>(supply_chain_data)</span>
+<span id="cb34-329"><a href="#cb34-329" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-330"><a href="#cb34-330" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-331"><a href="#cb34-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-332"><a href="#cb34-332" aria-hidden="true" tabindex="-1"></a>final_dimensions</span>
+<span id="cb34-333"><a href="#cb34-333" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-334"><a href="#cb34-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-335"><a href="#cb34-335" aria-hidden="true" tabindex="-1"></a>The final analytical dataset contains more rows than the cleaned orders dataset because one order can contain multiple items.</span>
+<span id="cb34-336"><a href="#cb34-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-337"><a href="#cb34-337" aria-hidden="true" tabindex="-1"></a>This means the final dataset is analyzed at the **order-item level**, while the cleaned orders dataset contains one row per order.</span>
+<span id="cb34-338"><a href="#cb34-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-339"><a href="#cb34-339" aria-hidden="true" tabindex="-1"></a><span class="fu">## Final dataset structure</span></span>
+<span id="cb34-340"><a href="#cb34-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-341"><a href="#cb34-341" aria-hidden="true" tabindex="-1"></a>I reviewed the final analytical dataset to confirm that the expected fulfillment, seller, freight, price, and product variables are available.</span>
+<span id="cb34-342"><a href="#cb34-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-345"><a href="#cb34-345" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-346"><a href="#cb34-346" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(supply_chain_data)</span>
+<span id="cb34-347"><a href="#cb34-347" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb34-348"><a href="#cb34-348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-349"><a href="#cb34-349" aria-hidden="true" tabindex="-1"></a>Rather than automatically removing those observations, I keep them because they may represent real costly shipments that are useful for the business analysis.</span>
+<span id="cb34-349"><a href="#cb34-349" aria-hidden="true" tabindex="-1"></a>The final dataset combines fulfillment, seller, freight, price, and product information in one analytical table.</span>
 <span id="cb34-350"><a href="#cb34-350" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-351"><a href="#cb34-351" aria-hidden="true" tabindex="-1"></a><span class="fu">## Variables used in the exploration</span></span>
+<span id="cb34-351"><a href="#cb34-351" aria-hidden="true" tabindex="-1"></a><span class="fu">## Freight-to-price ratio</span></span>
 <span id="cb34-352"><a href="#cb34-352" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-353"><a href="#cb34-353" aria-hidden="true" tabindex="-1"></a>The main variables used in the Exploration page are:</span>
+<span id="cb34-353"><a href="#cb34-353" aria-hidden="true" tabindex="-1"></a>Freight cost alone does not show how large the shipping cost is relative to the value of the product.</span>
 <span id="cb34-354"><a href="#cb34-354" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb34-355"><a href="#cb34-355" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`seller_state`</span> — seller location</span>
-<span id="cb34-356"><a href="#cb34-356" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`delivery_days`</span> — actual delivery duration</span>
-<span id="cb34-357"><a href="#cb34-357" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimated_days`</span> — estimated delivery duration</span>
-<span id="cb34-358"><a href="#cb34-358" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`delivery_status`</span> — on-time or late delivery</span>
-<span id="cb34-359"><a href="#cb34-359" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`price`</span> — product selling price</span>
-<span id="cb34-360"><a href="#cb34-360" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`freight_value`</span> — freight cost</span>
-<span id="cb34-361"><a href="#cb34-361" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`freight_ratio`</span> — freight cost relative to product price</span>
-<span id="cb34-362"><a href="#cb34-362" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`product_weight_g`</span> — product weight</span>
-<span id="cb34-363"><a href="#cb34-363" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`seller_id`</span> — seller identifier</span>
-<span id="cb34-364"><a href="#cb34-364" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`order_id`</span> — order identifier</span>
+<span id="cb34-355"><a href="#cb34-355" aria-hidden="true" tabindex="-1"></a>For example, the same freight charge can represent a small portion of an expensive product's value but a large portion of a lower-priced product's value.</span>
+<span id="cb34-356"><a href="#cb34-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-357"><a href="#cb34-357" aria-hidden="true" tabindex="-1"></a>The <span class="in">`freight_ratio`</span> variable was therefore created as:</span>
+<span id="cb34-358"><a href="#cb34-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-359"><a href="#cb34-359" aria-hidden="true" tabindex="-1"></a><span class="in">```text</span></span>
+<span id="cb34-360"><a href="#cb34-360" aria-hidden="true" tabindex="-1"></a><span class="in">freight value / product price</span></span>
+<span id="cb34-361"><a href="#cb34-361" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-362"><a href="#cb34-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-363"><a href="#cb34-363" aria-hidden="true" tabindex="-1"></a>I checked its distribution before using it in the exploration.</span>
+<span id="cb34-364"><a href="#cb34-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-367"><a href="#cb34-367" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb34-368"><a href="#cb34-368" aria-hidden="true" tabindex="-1"></a>freight_ratio_summary <span class="ot">&lt;-</span> supply_chain_data <span class="sc">|&gt;</span></span>
+<span id="cb34-369"><a href="#cb34-369" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb34-370"><a href="#cb34-370" aria-hidden="true" tabindex="-1"></a>    <span class="at">minimum =</span> <span class="fu">min</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb34-371"><a href="#cb34-371" aria-hidden="true" tabindex="-1"></a>    <span class="at">average =</span> <span class="fu">mean</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb34-372"><a href="#cb34-372" aria-hidden="true" tabindex="-1"></a>    <span class="at">median =</span> <span class="fu">median</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb34-373"><a href="#cb34-373" aria-hidden="true" tabindex="-1"></a>    <span class="at">maximum =</span> <span class="fu">max</span>(freight_ratio, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb34-374"><a href="#cb34-374" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-375"><a href="#cb34-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-376"><a href="#cb34-376" aria-hidden="true" tabindex="-1"></a>freight_ratio_summary</span>
+<span id="cb34-377"><a href="#cb34-377" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb34-378"><a href="#cb34-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-379"><a href="#cb34-379" aria-hidden="true" tabindex="-1"></a>The large difference between the median and maximum shows that some products have unusually high freight costs relative to their price.</span>
+<span id="cb34-380"><a href="#cb34-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-381"><a href="#cb34-381" aria-hidden="true" tabindex="-1"></a>I did not automatically remove these observations because they may represent real costly shipments that are relevant to the business question.</span>
+<span id="cb34-382"><a href="#cb34-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-383"><a href="#cb34-383" aria-hidden="true" tabindex="-1"></a>Instead, their effect is examined during the exploratory analysis.</span>
+<span id="cb34-384"><a href="#cb34-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-385"><a href="#cb34-385" aria-hidden="true" tabindex="-1"></a><span class="fu">## Variables used in the exploration</span></span>
+<span id="cb34-386"><a href="#cb34-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-387"><a href="#cb34-387" aria-hidden="true" tabindex="-1"></a>The main variables used in the Exploration page are:</span>
+<span id="cb34-388"><a href="#cb34-388" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-389"><a href="#cb34-389" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`seller_state`</span> — seller location</span>
+<span id="cb34-390"><a href="#cb34-390" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`delivery_days`</span> — actual delivery duration</span>
+<span id="cb34-391"><a href="#cb34-391" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimated_days`</span> — estimated delivery duration</span>
+<span id="cb34-392"><a href="#cb34-392" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`delivery_status`</span> — on-time or late delivery</span>
+<span id="cb34-393"><a href="#cb34-393" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`purchase_year`</span> — purchase year</span>
+<span id="cb34-394"><a href="#cb34-394" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`purchase_month`</span> — purchase month</span>
+<span id="cb34-395"><a href="#cb34-395" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`price`</span> — product selling price</span>
+<span id="cb34-396"><a href="#cb34-396" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`freight_value`</span> — freight cost</span>
+<span id="cb34-397"><a href="#cb34-397" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`freight_ratio`</span> — freight cost relative to product price</span>
+<span id="cb34-398"><a href="#cb34-398" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`product_weight_g`</span> — product weight</span>
+<span id="cb34-399"><a href="#cb34-399" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`seller_id`</span> — seller identifier</span>
+<span id="cb34-400"><a href="#cb34-400" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`order_id`</span> — order identifier</span>
+<span id="cb34-401"><a href="#cb34-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-402"><a href="#cb34-402" aria-hidden="true" tabindex="-1"></a>These variables provide the information needed to compare seller scale, delivery reliability, freight burden, marketplace activity over time, and product-related shipping costs.</span>
 </code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
