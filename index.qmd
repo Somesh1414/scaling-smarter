@@ -1,44 +1,47 @@
 ---
-title: "What Drives Delivery Time? Fulfillment Analysis of an E-Commerce Marketplace"
-toc: true
-toc-title: "On this page"
+title: "Scaling Smarter: Evaluating Seller Performance in an E-Commerce Marketplace"
 ---
 
 ## Business question
 
-**For delivered marketplace orders, how many days does it take to reach the customer (`delivery_days`), and which seller-location, customer-location, and shipment characteristics are associated with longer delivery times?**
+**Which seller segments are helping the marketplace scale efficiently, and which ones are creating high fulfillment costs or weak operational performance?**
 
 ## Business scenario
 
-An online marketplace connects thousands of independent sellers with customers across Brazil. The marketplace does not ship anything itself, but customers judge the marketplace by how fast their order arrives.
+An e-commerce marketplace depends on thousands of independent sellers to fulfill customer orders.
 
-Operations managers need to know where long delivery times come from so they can:
+As the marketplace grows, management needs to know whether the seller groups handling the most activity are also delivering reliably and at a reasonable logistics cost.
 
-- decide which seller-to-customer routes need logistics attention,
-- set delivery promises that are realistic instead of overly padded, and
-- decide where recruiting new sellers would bring products closer to customers.
+A high-volume seller group can support marketplace growth, but that growth becomes harder to sustain when it is combined with weaker delivery performance or unusually high freight burden.
 
-## Why `delivery_days` is the outcome
+This project evaluates seller performance using marketplace volume, delivery reliability, freight cost, seller location, and product characteristics.
 
-`delivery_days` is the number of days between purchase and delivery to the customer. I chose it as the single outcome for this project because:
+## Why this matters
 
-- it is a **number every order has once it is delivered**, so it can be measured, compared and later predicted,
-- customers feel it directly, and
-- the alternative, a late/on-time flag, is heavily imbalanced (about 92% of orders arrive on time), so it hides most of the variation in how long customers actually wait. The Data page shows this in detail.
+The goal is to identify seller groups that support efficient marketplace growth and seller groups that may require closer operational attention.
+
+The analysis also separates two different situations:
+
+- higher logistics costs associated with weaker operational performance, and
+- higher logistics costs that may be explained by the products being shipped.
+
+This distinction matters because higher freight cost does not automatically mean a seller group is inefficient. Heavier products may naturally be more expensive to transport.
 
 ## What this analysis examines
 
-1. **Data**: inspect, clean and combine the order, order-item, seller, product and customer tables into one row per delivered order.
-2. **Exploration**: describe `delivery_days`, then test how it changes with seller state, customer state, whether the seller and customer are in the same state, shipment weight and freight, and purchase month.
-3. **Modeling** (Milestone 2): predict `delivery_days` from information that is known at the time of purchase.
-4. **Conclusions**: recommendations for operations managers.
+The project currently focuses on two stages:
+
+1. **Data** — inspect, clean, and combine the order, order-item, seller, and product datasets.
+2. **Exploration** — evaluate seller scale, delivery reliability, freight burden, marketplace activity over time, and product-related shipping costs.
+
+The later Modeling and Conclusions pages will build on these findings as the course progresses.
 
 ## About me
 
 **Somesh Krishna**
 
-I am a graduate student in Management Information Systems at Northern Illinois University and I want to work as a **Supply Chain Analyst**. I am interested in logistics performance, delivery operations and turning operational data into decisions.
+I am a graduate student in Management Information Systems at Northern Illinois University with an interest in becoming a **Supply Chain Analyst**.
 
-## AI use disclosure
+My interests include supply chain analytics, logistics performance, inventory analysis, process improvement, and data visualization.
 
-I used AI assistants (ChatGPT and Claude) to help plan the page structure, explain R functions, troubleshoot errors and review my written explanations. I ran every code chunk myself, checked each output against the data, and I can explain every line of code on this site.
+This project reflects that interest by analyzing seller performance, delivery reliability, freight costs, and product characteristics to identify opportunities for more efficient marketplace growth.
