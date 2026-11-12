@@ -12,355 +12,467 @@ toc-title: "Data roadmap"
 
 library(tidyverse)
 
-orders <- read_csv("data/orders.csv")
+orders      <- read_csv("data/orders.csv")
 order_items <- read_csv("data/order_items.csv")
-products <- read_csv("data/products.csv")
-sellers <- read_csv("data/sellers.csv")
+products    <- read_csv("data/products.csv")
+sellers     <- read_csv("data/sellers.csv")
+customers   <- read_csv("data/customers.csv")
 ```
 
-## The dataset
+## The data
 
-This project uses four e-commerce datasets:
+The data comes from a Brazilian e-commerce marketplace (the public Olist dataset). I use five of its tables:
 
-- orders
-- order items
-- products
-- sellers
+| Table | One row is | Why I need it |
+|---|---|---|
+| orders | one order | status, purchase date, `delivery_days`, `estimated_days` |
+| order_items | one item inside an order | price, freight, which seller shipped it |
+| products | one product | product weight |
+| sellers | one seller | seller state |
+| customers | one customer account per order | customer state |
 
-Together, these datasets provide information about fulfillment, seller location, freight cost, product price, and product characteristics.
+My outcome is `delivery_days`, which lives in the orders table. Every other table is used to describe the order that `delivery_days` belongs to.
 
-## Original dataset dimensions
-
-Before cleaning or joining the data, I first checked the size of each dataset.
+## 1. How big is each table?
 
 ```{r}
-original_dimensions <- tibble(
-  dataset = c(
-    "Orders",
-    "Order Items",
-    "Products",
-    "Sellers"
-  ),
-  rows = c(
-    nrow(orders),
-    nrow(order_items),
-    nrow(products),
-    nrow(sellers)
-  ),
-  columns = c(
-    ncol(orders),
-    ncol(order_items),
-    ncol(products),
-    ncol(sellers)
-  )
+table_sizes <- tibble(
+  table   = c("orders", "order_items", "products", "sellers", "customers"),
+  rows    = c(nrow(orders), nrow(order_items), nrow(products), nrow(sellers), nrow(customers)),
+  columns = c(ncol(orders), ncol(order_items), ncol(products), ncol(sellers), ncol(customers))
 )
 
-original_dimensions
+table_sizes
 ```
 
-The orders table contains one row per order, while the order-items table can contain multiple rows for the same order because one order may contain several products.
+**What this told me:** order_items has `r nrow(order_items) - nrow(orders)` more rows than orders, so some orders contain more than one item. customers has exactly as many rows as orders (`r nrow(customers)`), because this dataset creates a new `customer_id` for every order.
 
-## Data structure
+**What I did because of it:** since one order can have several item rows, I cannot simply join items onto orders and analyse the result. `delivery_days` is recorded once per order, so I collapse the items to **one row per order** before joining (Section 7).
 
-I reviewed the structure of each dataset to understand the available variables and their data types.
-
-### Orders
+## 2. What types are the columns?
 
 ```{r}
 glimpse(orders)
 ```
 
-The orders dataset contains order status, purchase dates, delivery dates, delivery duration, and estimated delivery duration.
-
-### Order items
+**What this told me:** the dates were read as date-times (`dttm`) and `delivery_days` and `estimated_days` are already numeric, so no type conversion is needed. `purchase_year` and `purchase_month` are numbers, which is fine for grouping.
 
 ```{r}
 glimpse(order_items)
-```
-
-The order-items dataset connects orders with products and sellers and includes product price and freight value.
-
-### Products
-
-```{r}
 glimpse(products)
 ```
 
-The products dataset contains product category information and physical characteristics such as weight, length, height, and width.
-
-### Sellers
+**What this told me:** `price`, `freight_value` and `product_weight_g` are numeric. The product columns `product_name_lenght` and `product_description_lenght` are misspelled in the source data; I left the names as they are because I do not use those columns.
 
 ```{r}
 glimpse(sellers)
+glimpse(customers)
 ```
 
-The sellers dataset provides seller location information including seller city and state.
+**What this told me:** both tables store location as a two-letter state code (`seller_state`, `customer_state`). I add full state names and regions in Section 8 so the charts are readable.
 
-## Missing values
+## 3. Does each ID identify one row?
 
-Before deciding how to clean the data, I checked how many missing values appear in each dataset.
+Before joining, the key columns must be unique in the table they come from. If they were not, a join would silently duplicate rows.
 
 ```{r}
-missing_summary <- tibble(
-  dataset = c(
-    "Orders",
-    "Order Items",
-    "Products",
-    "Sellers"
-  ),
-  missing_values = c(
-    sum(is.na(orders)),
-    sum(is.na(order_items)),
-    sum(is.na(products)),
-    sum(is.na(sellers))
-  )
+key_check <- tibble(
+  table        = c("orders", "products", "sellers", "customers"),
+  key          = c("order_id", "product_id", "seller_id", "customer_id"),
+  rows         = c(nrow(orders), nrow(products), nrow(sellers), nrow(customers)),
+  unique_keys  = c(n_distinct(orders$order_id), n_distinct(products$product_id),
+                   n_distinct(sellers$seller_id), n_distinct(customers$customer_id))
 )
 
-missing_summary
+key_check
 ```
 
-The orders and products datasets contain missing values, so I looked more closely at which variables are affected.
+**What this told me:** in every table the number of unique keys equals the number of rows, so each ID points to exactly one row.
+
+**What I did because of it:** I can join products, sellers and customers with `left_join()` without creating extra rows. I also checked for fully duplicated rows:
+
+```{r}
+duplicate_check <- tibble(
+  table          = c("orders", "order_items", "products", "sellers", "customers"),
+  duplicate_rows = c(sum(duplicated(orders)), sum(duplicated(order_items)),
+                     sum(duplicated(products)), sum(duplicated(sellers)),
+                     sum(duplicated(customers)))
+)
+
+duplicate_check
+```
+
+No table contains fully duplicated rows, so nothing was removed for duplication.
+
+## 4. Where are the missing values?
+
+```{r}
+missing_check <- tibble(
+  table          = c("orders", "order_items", "products", "sellers", "customers"),
+  missing_values = c(sum(is.na(orders)), sum(is.na(order_items)), sum(is.na(products)),
+                     sum(is.na(sellers)), sum(is.na(customers)))
+)
+
+missing_check
+```
+
+Only orders and products have missing values, so I looked at which columns are affected.
 
 ### Missing values in orders
 
 ```{r}
-orders_missing <- tibble(
-  variable = names(orders),
+tibble(
+  column         = names(orders),
   missing_values = colSums(is.na(orders))
 ) |>
   filter(missing_values > 0)
-
-orders_missing
 ```
 
-The missing values in the orders dataset affect delivery information.
+The missing values are in the delivery date and `delivery_days`, which is my outcome. To find out **why** they are missing, I split them by order status:
 
-Because this project evaluates fulfillment performance, orders without a usable delivery duration cannot be included in the delivery analysis.
+```{r}
+missing_by_status <- orders |>
+  group_by(order_status) |>
+  summarise(
+    orders                = n(),
+    missing_delivery_days = sum(is.na(delivery_days)),
+    .groups = "drop"
+  ) |>
+  arrange(desc(orders))
+
+missing_by_status
+
+delivered_but_missing <- orders |>
+  filter(order_status == "delivered", is.na(delivery_days)) |>
+  nrow()
+```
+
+**What this told me:** almost all missing delivery times belong to orders that were never delivered (shipped, canceled, unavailable and so on). Those orders have no delivery time because the delivery never happened. Only `r delivered_but_missing` orders are marked "delivered" but have no delivery date, which looks like a recording error.
+
+**What I did because of it:** I keep only delivered orders with a recorded `delivery_days` (Section 5). I do not fill in the missing values, because inventing a delivery time for an order that never arrived would make the outcome wrong.
 
 ### Missing values in products
 
 ```{r}
-products_missing <- tibble(
-  variable = names(products),
+tibble(
+  column         = names(products),
   missing_values = colSums(is.na(products))
 ) |>
   filter(missing_values > 0)
-
-products_missing
 ```
 
-Some product category, description, and physical-characteristic fields contain missing values.
+**What this told me:** the category and description columns are missing for the same products, but I do not use those columns. Only `r sum(is.na(products$product_weight_g))` products are missing their weight.
 
-These records are retained because those variables are not required for every part of the analysis.
+**What I did because of it:** I keep all products. Orders that contain one of the products with no weight get a missing shipment weight, and I leave those orders out only of the weight analysis (the count is shown in Section 7).
 
-For analyses involving product weight, records with missing product weight are excluded only from that specific analysis rather than from the full dataset.
-
-## Duplicate rows
-
-I also checked for complete duplicate rows in each original dataset.
-
-```{r}
-duplicate_summary <- tibble(
-  dataset = c(
-    "Orders",
-    "Order Items",
-    "Products",
-    "Sellers"
-  ),
-  duplicate_rows = c(
-    sum(duplicated(orders)),
-    sum(duplicated(order_items)),
-    sum(duplicated(products)),
-    sum(duplicated(sellers))
-  )
-)
-
-duplicate_summary
-```
-
-No complete duplicate rows were found in the four source datasets.
-
-Therefore, no records needed to be removed because of complete duplication.
-
-## Cleaning the order data
-
-The analysis focuses on completed deliveries.
-
-I therefore kept only orders with a delivered status and a non-missing delivery duration.
+## 5. Cleaning the orders
 
 ```{r}
 orders_clean <- orders |>
-  filter(order_status == "delivered") |>
-  filter(!is.na(delivery_days))
+  filter(order_status == "delivered" & !is.na(delivery_days))
+
+orders_removed <- nrow(orders) - nrow(orders_clean)
 ```
 
-The effect of this cleaning decision is shown below.
+One `filter()` with `&` keeps a row only when **both** conditions are true: the order was delivered **and** it has a delivery time.
+
+**What this did:** the table went from `r nrow(orders)` to `r nrow(orders_clean)` orders, so `r orders_removed` orders were removed (`r round(orders_removed / nrow(orders) * 100, 1)`% of all orders). They are the undelivered orders and the delivered orders with no delivery date from Section 4.
+
+**Why:** the business question is about how long delivered orders take. An order that never arrived has no delivery time to explain.
+
+Next I checked that the outcome only takes values that make sense:
 
 ```{r}
-cleaning_summary <- tibble(
-  stage = c(
-    "Original Orders",
-    "Cleaned Delivered Orders"
-  ),
-  rows = c(
-    nrow(orders),
-    nrow(orders_clean)
-  ),
-  columns = c(
-    ncol(orders),
-    ncol(orders_clean)
+orders_clean |>
+  summarise(
+    min_delivery_days  = min(delivery_days),
+    max_delivery_days  = max(delivery_days),
+    zero_day_orders    = sum(delivery_days == 0),
+    min_estimated_days = min(estimated_days),
+    max_estimated_days = max(estimated_days)
   )
-)
-
-cleaning_summary
 ```
 
-This cleaning step removed **`r nrow(orders) - nrow(orders_clean)` rows** from the original orders dataset.
+**What this told me:** no delivery time is negative, so no order was delivered before it was bought. The `zero_day_orders` column counts same-day deliveries; they are possible for local orders, so I keep them. The maximum is very large, which means there is a long tail of very slow orders. I study that tail on the Exploration page instead of deleting it, because those orders really happened and they are the ones customers complain about.
 
-These rows were excluded because the analysis focuses on completed orders with a usable delivery duration.
+## 6. Why I do not use "late vs on time" as the outcome
 
-Keeping them would prevent a consistent comparison between actual delivery duration and estimated delivery duration.
-
-## Creating delivery status
-
-A delivery-performance variable is created by comparing actual delivery duration with estimated delivery duration.
+The dataset lets me label each order as on time (delivered within the estimate) or late:
 
 ```{r}
 orders_clean <- orders_clean |>
   mutate(
-    delivery_status = if_else(
-      delivery_days <= estimated_days,
-      "On Time",
-      "Late"
-    )
+    delivery_status = if_else(delivery_days <= estimated_days, "On Time", "Late")
   )
-```
 
-I then checked how many cleaned orders fall into each delivery category.
-
-```{r}
-delivery_status_summary <- orders_clean |>
+status_split <- orders_clean |>
   count(delivery_status) |>
-  mutate(
-    percent = n / sum(n) * 100
-  )
+  mutate(percent = round(n / sum(n) * 100, 1))
 
-delivery_status_summary
+status_split
+
+on_time_pct <- status_split |> filter(delivery_status == "On Time") |> pull(percent)
 ```
 
-This variable gives the analysis a consistent way to compare delivery reliability across seller groups.
+**What this told me:** `r on_time_pct`% of orders are on time and only `r 100 - on_time_pct`% are late. That imbalance creates two problems:
 
-## Building the analytical dataset
+- A model that always guesses "on time" would already be about `r round(on_time_pct)`% accurate while telling management nothing.
+- Every on-time **comparison** gets squeezed. When almost every group is somewhere around `r round(on_time_pct)`% on time, the differences between seller states are only a few percentage points. In a small state a handful of late orders can move its rate as much as a real difference would, so ranking states by on-time rate mostly ranks noise.
+- "On time" is measured against the marketplace's own estimate, so the label partly measures how generous the estimate is, not how fast the delivery was.
 
-The cleaned order data is then joined with order-item, seller, and product information.
+The second point shows up when I compare the two directly:
 
 ```{r}
-supply_chain_data <- orders_clean |>
-  left_join(
-    order_items,
-    by = "order_id"
-  ) |>
-  left_join(
-    sellers,
-    by = "seller_id"
-  ) |>
-  left_join(
-    products,
-    by = "product_id"
-  ) |>
-  mutate(
-    freight_ratio = freight_value / price
+orders_clean |>
+  summarise(
+    median_actual_days    = median(delivery_days),
+    median_estimated_days = median(estimated_days),
+    median_days_early     = median(estimated_days - delivery_days)
   )
 ```
 
-I created `supply_chain_data` so the main supply-chain variables are available in one table.
+The typical order arrives well before its estimate, so most orders count as "on time" even when the customer waited a long time.
 
-This allows delivery performance, seller location, freight cost, product price, and product characteristics to be analyzed together.
+**What I did because of it:** I use the number `delivery_days` as the single outcome for the project and keep `delivery_status` only as a description. A number keeps the full difference between a 3-day and a 30-day delivery, which the yes/no label throws away. On the Exploration page I compare states with a **boxplot of `delivery_days`**, which does not depend on the on-time split, and I show the late orders separately.
 
-## Final dataset dimensions
+**A note on 92.4% vs 92.6%:** my Milestone 1 Exploration page reported a slightly different on-time rate (92.6%) from this one (92.4%). The difference came from calculating it on the item-level table, where an order with three items was counted three times. Every number from here on is calculated at the order level, so the figures are consistent.
 
-After cleaning, joining, and creating the freight-to-price ratio, I checked the dimensions of the analytical dataset.
+## 7. Building one row per delivered order
+
+`delivery_days` belongs to the order, so every other variable has to be summarised to the order level first.
+
+### Step 1: summarise the items in each order
 
 ```{r}
-final_dimensions <- tibble(
-  dataset = c(
-    "Cleaned Orders",
-    "Final Supply Chain Dataset"
-  ),
-  rows = c(
-    nrow(orders_clean),
-    nrow(supply_chain_data)
-  ),
-  columns = c(
-    ncol(orders_clean),
-    ncol(supply_chain_data)
+order_summary <- order_items |>
+  left_join(products |> select(product_id, product_weight_g, product_category_name), by = "product_id") |>
+  group_by(order_id) |>
+  summarise(
+    n_items            = n(),
+    n_sellers          = n_distinct(seller_id),
+    seller_id          = first(seller_id),
+    order_price        = sum(price),
+    order_freight      = sum(freight_value),
+    shipment_weight_kg = sum(product_weight_g) / 1000,
+    main_category      = first(product_category_name),
+    .groups = "drop"
+  ) |>
+  mutate(main_category = replace_na(main_category, "unknown"))
+
+order_summary |> count(n_sellers)
+```
+
+**What this told me:** almost every order is shipped by a single seller. A few orders contain items from two or more sellers, which means they travel as separate shipments from different places.
+
+**What I did because of it:** for multi-seller orders there is no single seller state to attach `delivery_days` to, so I remove them and report how many (Step 2). `shipment_weight_kg` is missing for any order that contains a product with no weight, because `sum()` returns NA when one part is unknown. That is intentional: I would rather leave the weight missing than understate it. `main_category` is the category of the first item in the order; orders whose product has no category are labelled "unknown" instead of being dropped, because only the category is missing, not the order.
+
+### Step 2: attach the summary, seller and customer to each order
+
+```{r}
+orders_with_items <- orders_clean |>
+  left_join(order_summary, by = "order_id")
+
+delivery_data <- orders_with_items |>
+  filter(n_sellers == 1) |>
+  left_join(sellers |> select(seller_id, seller_state), by = "seller_id") |>
+  left_join(customers |> select(customer_id, customer_state), by = "customer_id") |>
+  mutate(
+    same_state    = if_else(seller_state == customer_state, "Same state", "Different state"),
+    freight_ratio = order_freight / order_price
   )
+
+rows_check <- tibble(
+  step   = c("Delivered orders (cleaned)",
+             "Removed: orders with no items",
+             "Removed: orders with more than one seller",
+             "Final delivery_data"),
+  orders = c(nrow(orders_with_items),
+             sum(is.na(orders_with_items$n_sellers)),
+             sum(orders_with_items$n_sellers > 1, na.rm = TRUE),
+             nrow(delivery_data))
 )
 
-final_dimensions
+rows_check
 ```
 
-The final analytical dataset contains more rows than the cleaned orders dataset because one order can contain multiple items.
+This chunk also creates two new variables:
 
-This means the final dataset is analyzed at the **order-item level**, while the cleaned orders dataset contains one row per order.
+- `same_state` is "Same state" when the seller and the customer are in the same state, otherwise "Different state". It is a rough stand-in for distance.
+- `freight_ratio` is the order's freight divided by its price: how much the customer paid in shipping for every 1 real spent on products. A ratio of 0.25 means shipping added 25% on top of the price. Its full summary is in Section 9.
 
-## Final dataset structure
+**What this told me:** the final table has one row per delivered, single-seller order. Cleaned orders minus the two removed groups equals the final row count, so the joins did not add or lose any rows by mistake. (`filter(n_sellers == 1)` also drops orders with no items, because their `n_sellers` is NA.)
 
-I reviewed the final analytical dataset to confirm that the expected fulfillment, seller, freight, price, and product variables are available.
+I also checked that every order found its seller and customer:
 
 ```{r}
-glimpse(supply_chain_data)
-```
-
-The final dataset combines fulfillment, seller, freight, price, and product information in one analytical table.
-
-## Freight-to-price ratio
-
-Freight cost alone does not show how large the shipping cost is relative to the value of the product.
-
-For example, the same freight charge can represent a small portion of an expensive product's value but a large portion of a lower-priced product's value.
-
-The `freight_ratio` variable was therefore created as:
-
-```text
-freight value / product price
-```
-
-I checked its distribution before using it in the exploration.
-
-```{r}
-freight_ratio_summary <- supply_chain_data |>
+delivery_data |>
   summarise(
-    minimum = min(freight_ratio, na.rm = TRUE),
-    average = mean(freight_ratio, na.rm = TRUE),
-    median = median(freight_ratio, na.rm = TRUE),
-    maximum = max(freight_ratio, na.rm = TRUE)
+    missing_seller_state   = sum(is.na(seller_state)),
+    missing_customer_state = sum(is.na(customer_state)),
+    missing_weight         = sum(is.na(shipment_weight_kg))
+  )
+```
+
+**What this told me:** every order has a seller state and a customer state. Only a handful of orders are missing shipment weight, because of the products with no weight from Section 4. I keep these orders and drop them only from the weight analysis.
+
+## 8. Adding readable state names and regions
+
+Brazil has 27 states (26 states plus the Federal District) grouped into five regions. Region is useful because distance across Brazil is large: shipping from the Southeast to the North is very different from shipping within the Southeast.
+
+```{r}
+state_lookup <- tribble(
+  ~state, ~state_name,           ~region,
+  "AC",   "Acre",                "North",
+  "AP",   "Amapá",               "North",
+  "AM",   "Amazonas",            "North",
+  "PA",   "Pará",                "North",
+  "RO",   "Rondônia",            "North",
+  "RR",   "Roraima",             "North",
+  "TO",   "Tocantins",           "North",
+  "AL",   "Alagoas",             "Northeast",
+  "BA",   "Bahia",               "Northeast",
+  "CE",   "Ceará",               "Northeast",
+  "MA",   "Maranhão",            "Northeast",
+  "PB",   "Paraíba",             "Northeast",
+  "PE",   "Pernambuco",          "Northeast",
+  "PI",   "Piauí",               "Northeast",
+  "RN",   "Rio Grande do Norte", "Northeast",
+  "SE",   "Sergipe",             "Northeast",
+  "DF",   "Federal District",    "Center-West",
+  "GO",   "Goiás",               "Center-West",
+  "MT",   "Mato Grosso",         "Center-West",
+  "MS",   "Mato Grosso do Sul",  "Center-West",
+  "ES",   "Espírito Santo",      "Southeast",
+  "MG",   "Minas Gerais",        "Southeast",
+  "RJ",   "Rio de Janeiro",      "Southeast",
+  "SP",   "São Paulo",           "Southeast",
+  "PR",   "Paraná",              "South",
+  "RS",   "Rio Grande do Sul",   "South",
+  "SC",   "Santa Catarina",      "South"
+)
+
+delivery_data <- delivery_data |>
+  left_join(
+    state_lookup |> rename(seller_state = state, seller_state_name = state_name, seller_region = region),
+    by = "seller_state"
+  ) |>
+  left_join(
+    state_lookup |> rename(customer_state = state, customer_state_name = state_name, customer_region = region),
+    by = "customer_state"
   )
 
-freight_ratio_summary
+delivery_data |>
+  summarise(
+    unmatched_seller_states   = sum(is.na(seller_state_name)),
+    unmatched_customer_states = sum(is.na(customer_state_name))
+  )
 ```
 
-The large difference between the median and maximum shows that some products have unusually high freight costs relative to their price.
+Both counts are 0, so every state code matched the lookup table.
 
-I did not automatically remove these observations because they may represent real costly shipments that are relevant to the business question.
+## 9. Descriptive statistics for the key numbers
 
-Instead, their effect is examined during the exploratory analysis.
+```{r}
+key_stats <- delivery_data |>
+  select(delivery_days, estimated_days, order_price, order_freight, freight_ratio, shipment_weight_kg) |>
+  pivot_longer(everything(), names_to = "variable", values_to = "value") |>
+  filter(!is.na(value)) |>
+  group_by(variable) |>
+  summarise(
+    count  = n(),
+    min    = round(min(value), 2),
+    mean   = round(mean(value), 2),
+    median = round(median(value), 2),
+    max    = round(max(value), 2),
+    sd     = round(sd(value), 2),
+    .groups = "drop"
+  )
 
-## Variables used in the exploration
+key_stats
+```
 
-The main variables used in the Exploration page are:
+```{r}
+#| include: false
+dd <- key_stats |> filter(variable == "delivery_days")
+fr <- key_stats |> filter(variable == "freight_ratio")
+ratio_over_1 <- sum(delivery_data$freight_ratio > 1)
+free_freight <- sum(delivery_data$order_freight == 0)
+```
 
-- `seller_state` — seller location
-- `delivery_days` — actual delivery duration
-- `estimated_days` — estimated delivery duration
-- `delivery_status` — on-time or late delivery
-- `purchase_year` — purchase year
-- `purchase_month` — purchase month
-- `price` — product selling price
-- `freight_value` — freight cost
-- `freight_ratio` — freight cost relative to product price
-- `product_weight_g` — product weight
-- `seller_id` — seller identifier
-- `order_id` — order identifier
+**What this told me about `delivery_days`:** the typical (median) order takes `r dd$median` days, but the mean is higher at `r dd$mean` days and the maximum is `r dd$max` days. A mean above the median means the distribution has a long right tail: a minority of very slow orders pulls the average up.
 
-These variables provide the information needed to compare seller scale, delivery reliability, freight burden, marketplace activity over time, and product-related shipping costs.
+**What I did because of it:** on the Exploration page I compare groups using the **median** and boxplots, which are not distorted by the slow tail, and I show the tail separately.
+
+### Text columns: how many orders in each level
+
+```{r}
+delivery_data |> count(seller_region, sort = TRUE)
+delivery_data |> count(customer_region, sort = TRUE)
+delivery_data |> count(same_state, sort = TRUE)
+delivery_data |> count(purchase_day_of_week, sort = TRUE)
+delivery_data |> count(main_category, sort = TRUE) |> head(10)
+```
+
+```{r}
+#| include: false
+pct_cross <- round(mean(delivery_data$same_state == "Different state") * 100, 1)
+top_seller_region <- delivery_data |> count(seller_region, sort = TRUE) |> slice(1)
+top_customer_region <- delivery_data |> count(customer_region, sort = TRUE) |> slice(1)
+```
+
+**What this told me:** the largest seller region is the `r top_seller_region$seller_region` (`r round(top_seller_region$n / nrow(delivery_data) * 100, 1)`% of orders) and the largest customer region is the `r top_customer_region$customer_region` (`r round(top_customer_region$n / nrow(delivery_data) * 100, 1)`%). `r pct_cross`% of orders cross a state line. The top 10 categories show how concentrated the product mix is; "unknown" is the group of products with no category.
+
+**What I did because of it:** regions with few orders get their own minimum-size rule on the Exploration page, so small groups are not compared as if they were as reliable as the Southeast.
+
+### How to read `freight_ratio`
+
+`freight_ratio` = order freight ÷ order price. It tells you how much the customer pays in shipping **for every 1 real spent on products**. I calculate it once per order (total freight ÷ total price) instead of averaging item-level ratios as I did in Milestone 1. Averaging item ratios gives a 1-real item the same weight as a 1,000-real item, which does not match what the customer paid for the whole order.
+
+- **Median `r fr$median`**: for a typical order, shipping adds about `r round(fr$median * 100)` cents per 1 real of product, roughly `r round(fr$median * 100)`% on top of the price.
+- **Mean `r fr$mean` vs median `r fr$median`**: the mean is above the median, so the distribution is skewed to the right. A minority of orders with very high shipping relative to price pulls the average up.
+- **SD `r fr$sd`**: the standard deviation is large compared with the median, so the ratio varies a lot from order to order.
+- **Maximum `r fr$max`**: this is a single order, which paid `r fr$max` times its product price in shipping (a very cheap item). One order says nothing about the typical order, so I do not read the maximum as a pattern.
+- `r ratio_over_1` orders (`r round(ratio_over_1 / nrow(delivery_data) * 100, 1)`%) paid more for shipping than for the products (`freight_ratio` above 1), and `r free_freight` orders had free shipping (ratio of 0).
+
+**What I did because of it:** I keep the extreme ratios because they are real orders. I use the median when comparing groups, and on the Exploration page I check whether a high freight ratio goes together with slower delivery.
+
+## 10. Final dataset
+
+```{r}
+delivery_data <- delivery_data |>
+  select(
+    order_id, delivery_days, estimated_days, delivery_status,
+    purchase_year, purchase_month, purchase_day_of_week,
+    seller_state, seller_state_name, seller_region,
+    customer_state, customer_state_name, customer_region, same_state,
+    n_items, main_category, order_price, order_freight, freight_ratio, shipment_weight_kg
+  )
+
+dim(delivery_data)
+```
+
+The final dataset has **`r nrow(delivery_data)` delivered orders** (one row each) and `r ncol(delivery_data)` columns.
+
+| Variable | Meaning | Known when the order is placed? |
+|---|---|---|
+| `delivery_days` | days from purchase to delivery (**outcome**) | No, this is what we want to predict |
+| `estimated_days` | days the marketplace promised | Yes |
+| `delivery_status` | on time / late | No, it is calculated from the outcome |
+| `purchase_year`, `purchase_month`, `purchase_day_of_week` | when the order was placed | Yes |
+| `seller_state`, `seller_region` | where the seller ships from | Yes |
+| `customer_state`, `customer_region` | where the customer lives | Yes |
+| `same_state` | seller and customer in the same state | Yes |
+| `n_items` | items in the order | Yes |
+| `main_category` | product category of the first item | Yes |
+| `order_price`, `order_freight`, `freight_ratio` | money paid for products and shipping | Yes |
+| `shipment_weight_kg` | total product weight | Yes |
+
+The last column matters for Milestone 2. A model may only use information that exists when the order is placed. `delivery_status` and the delivery date are calculated from the outcome itself, so they are excluded from modeling.
+
+I save the table so the Exploration page uses exactly the same data:
+
+```{r}
+write_rds(delivery_data, "data/delivery_data.rds")
+```
+
+The file is saved inside `data/`, which is excluded from GitHub, so no data is uploaded to the repository.

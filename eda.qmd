@@ -1,7 +1,7 @@
 ---
 title: "Exploration"
 toc: true
-toc-depth: 3
+toc-depth: 2
 toc-title: "Analysis roadmap"
 ---
 
@@ -12,498 +12,514 @@ toc-title: "Analysis roadmap"
 
 library(tidyverse)
 
-orders <- read_csv("data/orders.csv")
-order_items <- read_csv("data/order_items.csv")
-products <- read_csv("data/products.csv")
-sellers <- read_csv("data/sellers.csv")
+delivery_data <- read_rds("data/delivery_data.rds")
 
-orders_clean <- orders |>
-  filter(order_status == "delivered") |>
-  filter(!is.na(delivery_days)) |>
-  mutate(
-    delivery_status = if_else(
-      delivery_days <= estimated_days,
-      "On Time",
-      "Late"
-    )
-  )
-
-supply_chain_data <- orders_clean |>
-  left_join(order_items, by = "order_id") |>
-  left_join(sellers, by = "seller_id") |>
-  left_join(products, by = "product_id") |>
-  mutate(
-    freight_ratio = freight_value / price
-  )
-```
-
-This exploration examines how seller scale, delivery performance, freight cost, and product characteristics interact across the marketplace.
-
-The goal is to identify which seller groups are supporting efficient marketplace growth and which groups may require more operational attention.
-
-**Business question:** Which seller segments are helping the marketplace scale efficiently, and which ones are creating high fulfillment costs or weak operational performance?
-
-## Marketplace benchmark
-
-Before comparing individual seller groups, I first calculated the overall marketplace performance.
-
-```{r}
-overall_performance <- supply_chain_data |>
-  summarise(
-    total_items = n(),
-    average_delivery_days = mean(delivery_days),
-    average_freight_cost = mean(freight_value),
-    average_freight_ratio = mean(freight_ratio, na.rm = TRUE),
-    on_time_rate = mean(delivery_status == "On Time") * 100
-  )
-
-overall_performance
-```
-
-The marketplace contains **`r overall_performance$total_items` item rows**.
-
-Average delivery time is **`r round(overall_performance$average_delivery_days, 1)` days**, average freight cost is **`r round(overall_performance$average_freight_cost, 1)`**, and the overall on-time delivery rate is **`r round(overall_performance$on_time_rate, 1)`%**.
-
-These values provide the benchmark for the comparisons that follow.
-
-```{r}
-state_names <- tibble(
-  seller_state = c(
-    "SP", "MG", "PR", "RJ",
-    "SC", "RS", "DF", "BA"
-  ),
-  seller_name = c(
-    "São Paulo",
-    "Minas Gerais",
-    "Paraná",
-    "Rio de Janeiro",
-    "Santa Catarina",
-    "Rio Grande do Sul",
-    "Federal District",
-    "Bahia"
-  )
+theme_set(
+  theme_minimal(base_size = 12) +
+    theme(plot.title.position = "plot", plot.title = element_text(face = "bold"))
 )
 
-seller_state_performance <- supply_chain_data |>
-  group_by(seller_state) |>
+# A state (or route) needs at least this many orders before I compare its median.
+# Below that, one or two unusual orders can move the median a lot.
+min_orders <- 100
+```
+
+**Question:** for delivered orders, how long does delivery take (`delivery_days`), and which seller-location, customer-location and shipment characteristics are associated with longer delivery times?
+
+The page answers it in five steps:
+
+1. What does a normal delivery time look like?
+2. Does it depend on where the seller ships from?
+3. Does it depend on where the customer lives and how far the order travels?
+4. Does it depend on what is being shipped?
+5. Does it change over time, and how does it compare with what customers are promised?
+
+All numbers are calculated at the order level, using the `r nrow(delivery_data)` delivered orders prepared on the Data page.
+
+## 1. What is a normal delivery time?
+
+```{r}
+delivery_benchmark <- delivery_data |>
   summarise(
-    total_items = n(),
-    average_delivery_days = mean(delivery_days),
-    average_freight_cost = mean(freight_value),
-    average_freight_ratio = mean(freight_ratio, na.rm = TRUE),
-    on_time_rate = mean(delivery_status == "On Time") * 100,
-    average_product_weight = mean(product_weight_g, na.rm = TRUE),
+    orders = n(),
+    min    = min(delivery_days),
+    p25    = quantile(delivery_days, 0.25),
+    median = median(delivery_days),
+    mean   = round(mean(delivery_days), 1),
+    p75    = quantile(delivery_days, 0.75),
+    p90    = quantile(delivery_days, 0.90),
+    max    = max(delivery_days),
+    sd     = round(sd(delivery_days), 1)
+  )
+
+delivery_benchmark
+
+overall_median <- delivery_benchmark$median
+pct_over_30    <- round(mean(delivery_data$delivery_days > 30) * 100, 1)
+zero_days      <- sum(delivery_data$delivery_days == 0)
+```
+
+**What this told me:** half of all orders arrive within **`r overall_median` days** and three quarters within **`r delivery_benchmark$p75` days**. The mean (`r delivery_benchmark$mean`) is above the median, and the slowest 10% of orders take more than `r delivery_benchmark$p90` days. **`r overall_median` days is the benchmark** for every comparison on the rest of this page. `r zero_days` orders were delivered on the day they were bought (0 days), which is possible for local orders, so they stay in.
+
+```{r}
+#| fig-height: 4.5
+
+ggplot(delivery_data, aes(x = delivery_days)) +
+  geom_histogram(binwidth = 2, fill = "grey70", color = "white") +
+  geom_vline(xintercept = overall_median, linewidth = 1, color = "#1b6ca8") +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "#c0392b") +
+  annotate("text", x = overall_median + 1, y = Inf, vjust = 1.5, hjust = 0,
+           label = paste0("Median: ", overall_median, " days"), color = "#1b6ca8") +
+  annotate("text", x = 31, y = Inf, vjust = 3.5, hjust = 0,
+           label = paste0(pct_over_30, "% of orders take more than 30 days"), color = "#c0392b") +
+  labs(
+    title    = str_wrap(paste0("Half of orders arrive within ", overall_median,
+                      " days, but a long tail waits over a month"), 60),
+    subtitle = "Distribution of delivery time for delivered orders",
+    x = "Delivery time (days)",
+    y = "Number of orders"
+  )
+```
+
+**So what:** three quarters of customers get their order within `r delivery_benchmark$p75` days, but `r pct_over_30`% wait more than a month. Because of that tail I compare groups by their **median** and use boxplots for the spread, so a few very slow orders do not distort the comparisons.
+
+## 2. Does delivery time depend on where the seller is?
+
+```{r}
+seller_state_summary <- delivery_data |>
+  group_by(seller_state_name, seller_region) |>
+  summarise(
+    orders        = n(),
+    median_days   = median(delivery_days),
+    mean_days     = round(mean(delivery_days), 1),
+    pct_over_30   = round(mean(delivery_days > 30) * 100, 1),
+    on_time_pct   = round(mean(delivery_status == "On Time") * 100, 1),
     .groups = "drop"
   ) |>
-  arrange(desc(total_items)) |>
-  left_join(state_names, by = "seller_state")
+  arrange(desc(orders))
 
-top_8_states <- seller_state_performance |>
-  head(8)
+states_kept  <- seller_state_summary |> filter(orders >= min_orders)
+coverage_pct <- round(sum(states_kept$orders) / nrow(delivery_data) * 100, 1)
 
-largest_state <- top_8_states |>
-  arrange(desc(total_items)) |>
-  head(1)
-
-largest_state_share <-
-  largest_state$total_items /
-  overall_performance$total_items * 100
+seller_state_summary
 ```
 
-## 1. Scale and reliability
+**What this told me:** sellers are very concentrated. Only `r nrow(states_kept)` of the `r nrow(seller_state_summary)` seller states have at least `r min_orders` orders, but together they cover **`r coverage_pct`% of all orders**.
 
-A seller group matters more operationally when it handles a large share of marketplace activity.
+**What I did because of it:** instead of picking an arbitrary "top 4" or "top 5" like in Milestone 1, I compare every seller state that has at least `r min_orders` orders. Below that size a state's median depends on a handful of orders and is not a reliable comparison. The remaining `r round(100 - coverage_pct, 1)`% of orders still count in every overall number on this page.
 
-The first step is therefore to determine where marketplace volume is concentrated and whether those seller groups are also delivering reliably.
-
-### 1.a Where is marketplace volume concentrated?
+### 2a. How many orders does each seller state ship?
 
 ```{r}
-ggplot(
-  top_8_states,
-  aes(
-    x = reorder(seller_name, total_items),
-    y = total_items,
-    fill = on_time_rate
-  )
-) +
+#| fig-height: 5.5
+
+ggplot(seller_state_summary,
+       aes(x = orders, y = fct_reorder(seller_state_name, orders),
+           fill = orders >= min_orders)) +
   geom_col() +
-  coord_flip() +
-  geom_text(
-    aes(label = paste0(round(on_time_rate, 1), "%")),
-    hjust = -0.1,
-    size = 4
-  ) +
-  scale_fill_gradient(
-    low = "#8ecae6",
-    high = "#023047"
-  ) +
-  expand_limits(
-    y = max(top_8_states$total_items) * 1.12
-  ) +
+  geom_text(aes(label = format(orders, big.mark = ",", trim = TRUE)),
+            hjust = -0.15, size = 3) +
+  scale_fill_manual(values = c("TRUE" = "#1b6ca8", "FALSE" = "grey75"),
+                    labels = c("TRUE" = paste0(min_orders, "+ orders (compared below)"),
+                               "FALSE" = paste0("Fewer than ", min_orders, " orders")),
+                    breaks = c("TRUE", "FALSE")) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
   labs(
-    title = "Marketplace activity is heavily concentrated in one seller state",
-    subtitle = "Bar length shows item volume; labels show on-time delivery rate",
-    x = "Seller State",
-    y = "Number of Items",
-    fill = "On-Time Rate (%)"
+    title    = str_wrap(paste0(seller_state_summary$seller_state_name[1], " ships ",
+                               round(seller_state_summary$orders[1] / nrow(delivery_data) * 100, 1),
+                               "% of all delivered orders"), 60),
+    subtitle = "Delivered orders by seller state, all states",
+    x = "Delivered orders",
+    y = NULL,
+    fill = NULL
   ) +
-  theme_light()
+  theme(legend.position = "bottom")
 ```
 
-**What this shows:** **`r largest_state$seller_name`** handles **`r largest_state$total_items` items**, representing approximately **`r round(largest_state_share, 1)`%** of marketplace activity.
+**So what:** volume is extremely uneven. This chart shows only volume; how fast each state delivers is shown separately below, so the bar length is never mixed up with a performance measure.
 
-This concentration matters because even a relatively small improvement in a high-volume seller group can affect a large number of marketplace items.
-
-### 1.b Which states beat the delivery benchmark?
-
-Volume alone does not show whether those seller groups are performing well.
-
-I therefore compared each major seller state's on-time delivery rate with the overall marketplace benchmark.
+### 2b. Does the on-time rate separate the states?
 
 ```{r}
-delivery_comparison <- top_8_states |>
-  mutate(
-    difference_from_average =
-      on_time_rate - overall_performance$on_time_rate,
-    performance_group = if_else(
-      difference_from_average >= 0,
-      "Above Average",
-      "Below Average"
-    )
-  )
+#| fig-height: 4.5
 
-best_delivery_state <- delivery_comparison |>
-  arrange(desc(difference_from_average)) |>
-  head(1)
+on_time_range <- range(states_kept$on_time_pct)
+overall_on_time <- round(mean(delivery_data$delivery_status == "On Time") * 100, 1)
 
-weakest_delivery_state <- delivery_comparison |>
-  arrange(difference_from_average) |>
-  head(1)
-```
-
-```{r}
-ggplot(
-  delivery_comparison,
-  aes(
-    x = difference_from_average,
-    y = reorder(seller_name, difference_from_average)
-  )
-) +
-  geom_vline(
-    xintercept = 0,
-    linetype = "dashed",
-    color = "gray40"
-  ) +
-  geom_segment(
-    aes(
-      x = 0,
-      xend = difference_from_average,
-      y = reorder(seller_name, difference_from_average),
-      yend = reorder(seller_name, difference_from_average)
-    ),
-    linewidth = 1,
-    color = "gray40"
-  ) +
-  geom_point(
-    aes(color = performance_group),
-    size = 4.5
-  ) +
-  scale_color_manual(
-    values = c(
-      "Above Average" = "#00A6A6",
-      "Below Average" = "#EF476F"
-    )
-  ) +
+ggplot(states_kept, aes(x = on_time_pct, y = fct_reorder(seller_state_name, on_time_pct))) +
+  geom_vline(xintercept = overall_on_time, linetype = "dashed") +
+  geom_point(size = 3, color = "#1b6ca8") +
+  geom_text(aes(label = paste0(on_time_pct, "% (n=", format(orders, big.mark = ",", trim = TRUE), ")")),
+            hjust = 1.15, size = 3) +
+  scale_x_continuous(limits = c(0, 100), expand = expansion(mult = c(0, 0.02))) +
   labs(
-    title = "Major seller states fall on both sides of the delivery benchmark",
-    subtitle = "Distance from the overall marketplace on-time delivery rate",
-    x = "Percentage Points Above or Below Marketplace Average",
-    y = "Seller State",
-    color = "Performance"
-  ) +
-  theme_light()
-```
-
-**What this shows:** **`r best_delivery_state$seller_name`** performs strongest relative to the marketplace benchmark, while **`r weakest_delivery_state$seller_name`** performs weakest among the eight largest seller states.
-
-The business concern is therefore not simply which seller state is largest, but where large marketplace volume is combined with weaker fulfillment performance.
-
-## 2. Operational pressure
-
-Delivery reliability and freight burden should not be evaluated separately.
-
-A seller group with strong delivery and low freight burden occupies a very different operating position from one with weaker delivery and higher shipping costs relative to product price.
-
-```{r}
-ggplot(
-  top_8_states,
-  aes(
-    x = average_freight_ratio,
-    y = on_time_rate,
-    size = total_items,
-    color = seller_name
+    title    = str_wrap(paste0("On-time rates only range from ", on_time_range[1], "% to ",
+                               on_time_range[2], "%, so they barely separate the states"), 60),
+    subtitle = str_wrap("Share of orders delivered by the promised date, on a full 0–100% axis. Dashed line = overall rate. Seller states with at least 100 orders.", 60),
+    x = "Orders delivered on time (%)",
+    y = NULL
   )
-) +
-  geom_point(alpha = 0.85) +
-  geom_vline(
-    xintercept = overall_performance$average_freight_ratio,
-    linetype = "dashed",
-    color = "gray40"
-  ) +
-  geom_hline(
-    yintercept = overall_performance$on_time_rate,
-    linetype = "dashed",
-    color = "gray40"
-  ) +
-  labs(
-    title = "Some seller groups face pressure from both cost and delivery performance",
-    subtitle = "Bubble size represents marketplace item volume",
-    x = "Average Freight-to-Price Ratio",
-    y = "On-Time Delivery Rate (%)",
-    color = "Seller State",
-    size = "Number of Items"
-  ) +
-  theme_light()
 ```
 
-**What this shows:** Seller groups below the horizontal delivery benchmark have weaker-than-average fulfillment performance.
+**So what:** on a full 0–100% axis every state sits close to the overall `r overall_on_time`%. This is the imbalance from the Data page in action: with almost every order on time, the on-time rate cannot tell the states apart. That is why the main comparison uses `delivery_days`.
 
-Seller groups to the right of the vertical benchmark carry a higher-than-average freight burden.
-
-The seller groups that combine both conditions deserve the closest operational attention, especially when they also handle substantial marketplace volume.
-
-## 3. Marketplace activity over time
-
-Seller performance should also be interpreted through time.
-
-Periods of heavier activity may place additional pressure on the marketplace's fulfillment network.
+### 2c. Delivery days by seller state
 
 ```{r}
-#| message: false
-#| warning: false
+#| fig-height: 6
 
-monthly_activity <- supply_chain_data |>
-  group_by(purchase_year, purchase_month) |>
+seller_box_data <- delivery_data |>
+  semi_join(states_kept, by = "seller_state_name") |>
+  left_join(states_kept |> select(seller_state_name, orders), by = "seller_state_name") |>
+  mutate(state_label = paste0(seller_state_name, " (", format(orders, big.mark = ",", trim = TRUE), ")"))
+
+fastest_state <- states_kept |> slice_min(median_days, n = 1, with_ties = FALSE)
+slowest_state <- states_kept |> slice_max(median_days, n = 1, with_ties = FALSE)
+
+ggplot(seller_box_data,
+       aes(x = delivery_days,
+           y = fct_reorder(state_label, delivery_days, .fun = median),
+           fill = seller_region)) +
+  geom_boxplot(outlier.alpha = 0.08, width = 0.6) +
+  geom_vline(xintercept = overall_median, linetype = "dashed") +
+  coord_cartesian(xlim = c(0, 60)) +
+  labs(
+    title    = str_wrap(paste0("Seller state matters: median delivery ranges from ",
+                      fastest_state$median_days, " days (", fastest_state$seller_state_name,
+                      ") to ", slowest_state$median_days, " days (",
+                      slowest_state$seller_state_name, ")"), 60),
+    subtitle = str_wrap(paste0("Seller states with at least ", min_orders,
+                      " orders, sorted by median. Dashed line = overall median. ",
+                      "Number of orders in brackets. Axis cut at 60 days."), 60),
+    x = "Delivery time (days)",
+    y = NULL,
+    fill = "Seller region"
+  )
+```
+
+**So what:** orders shipped from `r fastest_state$seller_state_name` have the shortest median (`r fastest_state$median_days` days) and orders from `r slowest_state$seller_state_name` the longest (`r slowest_state$median_days` days). The boxes overlap a lot, though, so seller state alone does not explain much. One likely reason is that most customers live in the Southeast near most sellers, so the same seller state can be fast for nearby customers and slow for distant ones. The next section tests that.
+
+## 3. Does it depend on where the customer is?
+
+### 3a. Same state vs different state
+
+```{r}
+same_state_summary <- delivery_data |>
+  group_by(same_state) |>
   summarise(
-    total_items = n(),
-    on_time_rate = mean(delivery_status == "On Time") * 100,
+    orders      = n(),
+    pct_orders  = round(n() / nrow(delivery_data) * 100, 1),
+    median_days = median(delivery_days),
+    p75_days    = quantile(delivery_days, 0.75),
+    pct_over_30 = round(mean(delivery_days > 30) * 100, 1),
     .groups = "drop"
   )
 
-peak_month <- monthly_activity |>
-  arrange(desc(total_items)) |>
-  head(1)
+same_state_summary
+
+same_median <- same_state_summary |> filter(same_state == "Same state") |> pull(median_days)
+diff_median <- same_state_summary |> filter(same_state == "Different state") |> pull(median_days)
 ```
 
-### 3.a When does marketplace activity peak?
-
 ```{r}
-ggplot(
-  monthly_activity,
-  aes(
-    x = purchase_month,
-    y = total_items,
-    group = 1
+#| fig-height: 4
+
+ggplot(delivery_data, aes(x = delivery_days, fill = same_state)) +
+  geom_density(alpha = 0.5, color = NA) +
+  geom_vline(data = same_state_summary,
+             aes(xintercept = median_days, color = same_state),
+             linewidth = 1, show.legend = FALSE) +
+  coord_cartesian(xlim = c(0, 60)) +
+  scale_fill_manual(values = c("Same state" = "#1b6ca8", "Different state" = "#e67e22")) +
+  scale_color_manual(values = c("Same state" = "#1b6ca8", "Different state" = "#e67e22")) +
+  labs(
+    title    = str_wrap(paste0("Orders that stay inside one state arrive faster: median ",
+                      same_median, " vs ", diff_median, " days"), 60),
+    subtitle = "Share of orders by delivery time. Vertical lines = medians. Axis cut at 60 days.",
+    x = "Delivery time (days)",
+    y = "Share of orders",
+    fill = NULL
   )
-) +
-  geom_area(
-    fill = "#8ecae6",
-    alpha = 0.65
-  ) +
-  geom_line(
-    color = "#023047",
-    linewidth = 1.2
-  ) +
-  geom_point(
-    color = "#fb8500",
-    size = 2.7
-  ) +
-  facet_wrap(~ purchase_year) +
+```
+
+**So what:** an order that stays inside one state has a median of `r same_median` days, compared with `r diff_median` days when it crosses state lines. Only `r same_state_summary |> filter(same_state == "Same state") |> pull(pct_orders)`% of orders stay in one state, so most orders pay this distance penalty. Distance looks like a stronger driver than the seller itself.
+
+### 3b. Which routes are slowest?
+
+Region-to-region routes show distance more clearly than 27 × 27 state pairs, many of which have only a few orders.
+
+```{r}
+#| fig-height: 5
+
+route_summary <- delivery_data |>
+  group_by(seller_region, customer_region) |>
+  summarise(
+    orders      = n(),
+    median_days = median(delivery_days),
+    .groups = "drop"
+  ) |>
+  mutate(
+    reliable   = orders >= min_orders,
+    tile_label = if_else(reliable,
+                         paste0(median_days, " d\n(", format(orders, big.mark = ",", trim = TRUE), ")"),
+                         paste0("n = ", orders))
+  )
+
+region_order <- c("South", "Southeast", "Center-West", "Northeast", "North")
+
+slowest_route <- route_summary |> filter(reliable) |> slice_max(median_days, n = 1, with_ties = FALSE)
+fastest_route <- route_summary |> filter(reliable) |> slice_min(median_days, n = 1, with_ties = FALSE)
+
+ggplot(route_summary,
+       aes(x = factor(customer_region, levels = region_order),
+           y = factor(seller_region, levels = region_order))) +
+  geom_tile(aes(fill = if_else(reliable, median_days, NA_real_)), color = "white") +
+  geom_text(aes(label = tile_label), size = 3.2) +
+  scale_fill_gradient(low = "#eaf2f8", high = "#c0392b", na.value = "grey92") +
   labs(
-    title = "Marketplace activity rises sharply as the business grows",
-    subtitle = "Area shows monthly item volume while the line highlights the trend",
-    x = "Purchase Month",
-    y = "Number of Items"
-  ) +
-  theme_light()
+    title    = str_wrap(paste0("Route drives delivery time: ", fastest_route$seller_region, " to ",
+                      fastest_route$customer_region, " takes ", fastest_route$median_days,
+                      " days, ", slowest_route$seller_region, " to ",
+                      slowest_route$customer_region, " takes ", slowest_route$median_days), 60),
+    subtitle = str_wrap(paste0("Median delivery days (orders in brackets). Grey = fewer than ",
+                      min_orders, " orders, too few to compare."), 60),
+    x = "Customer region (shipped to)",
+    y = "Seller region (shipped from)",
+    fill = "Median days"
+  )
 ```
 
-**What this shows:** The highest-volume period occurs in month **`r peak_month$purchase_month`** of **`r peak_month$purchase_year`**, with **`r peak_month$total_items` items**.
+**So what:** the fastest reliable route is `r fastest_route$seller_region` to `r fastest_route$customer_region` (`r fastest_route$median_days` days) and the slowest is `r slowest_route$seller_region` to `r slowest_route$customer_region` (`r slowest_route$median_days` days). The same seller region can be fast or slow depending on where the customer is, so where the customer lives matters as much as where the seller is. For operations this points to customers in distant regions, not to individual "bad" seller states, as the place where delivery time is lost.
 
-The on-time delivery rate during that same period was approximately **`r round(peak_month$on_time_rate, 1)`%**.
+## 4. Does it depend on what is shipped?
 
-This gives management a way to connect fulfillment performance with periods when the marketplace is carrying its greatest workload.
-
-## 4. What drives freight cost?
-
-A seller with higher freight costs is not automatically inefficient.
-
-Some of the difference may be explained by the physical characteristics of the products that seller groups handle.
-
-### 4.a Does product weight explain freight cost?
+Heavier or more expensive-to-ship orders might take longer because they need different carriers. I grouped orders into bands, because a scatter plot of `r format(nrow(delivery_data), big.mark = ",", trim = TRUE)` points turns into a solid blob.
 
 ```{r}
-#| message: false
-#| warning: false
+#| fig-height: 4.5
+#| fig-width: 9
 
-supply_chain_data |>
-  filter(!is.na(product_weight_g)) |>
-  ggplot(
-    aes(
-      x = product_weight_g,
-      y = freight_value
-    )
-  ) +
-  geom_point(
-    color = "#4361EE",
-    alpha = 0.12
-  ) +
-  geom_smooth(
-    color = "#F72585",
-    se = FALSE,
-    linewidth = 1.5
-  ) +
+weight_summary <- delivery_data |>
+  filter(!is.na(shipment_weight_kg)) |>
+  mutate(weight_band = cut(shipment_weight_kg,
+                           breaks = c(0, 0.5, 1, 2, 5, 10, Inf),
+                           labels = c("< 0.5 kg", "0.5–1 kg", "1–2 kg", "2–5 kg", "5–10 kg", "10+ kg"),
+                           include.lowest = TRUE)) |>
+  group_by(weight_band) |>
+  summarise(
+    orders      = n(),
+    p25         = quantile(delivery_days, 0.25),
+    median_days = median(delivery_days),
+    p75         = quantile(delivery_days, 0.75),
+    .groups = "drop"
+  )
+
+weight_summary
+
+ratio_summary <- delivery_data |>
+  mutate(ratio_band = cut(freight_ratio,
+                          breaks = c(-Inf, 0.10, 0.25, 0.50, 1, Inf),
+                          labels = c("< 10%", "10–25%", "25–50%", "50–100%", "> 100%"))) |>
+  group_by(ratio_band) |>
+  summarise(
+    orders      = n(),
+    p25         = quantile(delivery_days, 0.25),
+    median_days = median(delivery_days),
+    p75         = quantile(delivery_days, 0.75),
+    .groups = "drop"
+  )
+
+ratio_summary
+
+shipment_bands <- bind_rows(
+  weight_summary |> rename(band = weight_band) |> mutate(measure = "Shipment weight"),
+  ratio_summary  |> rename(band = ratio_band)  |> mutate(measure = "Shipping cost as % of product price")
+) |>
+  mutate(band_label = paste0(band, "\n(n=", format(orders, big.mark = ",", trim = TRUE), ")"),
+         band_label = fct_inorder(band_label))
+
+shipment_spread <- shipment_bands |>
+  group_by(measure) |>
+  summarise(spread = max(median_days) - min(median_days), .groups = "drop")
+
+route_spread <- route_summary |>
+  filter(reliable) |>
+  summarise(spread = max(median_days) - min(median_days)) |>
+  pull(spread)
+
+ggplot(shipment_bands, aes(x = band_label, y = median_days)) +
+  geom_hline(yintercept = overall_median, linetype = "dashed") +
+  geom_pointrange(aes(ymin = p25, ymax = p75), color = "#1b6ca8") +
+  facet_wrap(~ measure, scales = "free_x") +
   labs(
-    title = "Heavier products generally cost more to ship",
-    subtitle = "The highlighted trend shows the overall weight-to-freight relationship",
-    x = "Product Weight (grams)",
-    y = "Freight Cost"
-  ) +
-  theme_light()
-```
-
-**What this shows:** Freight cost generally increases as product weight increases.
-
-This means part of the freight burden is associated with product mix rather than seller performance alone.
-
-### 4.b Does that relationship change across seller states?
-
-I then separated the four largest seller states to determine whether the same weight-to-freight pattern appears in each market.
-
-```{r}
-top_4_states <- top_8_states |>
-  head(4)
-
-top_4_state_names <- top_4_states$seller_name
+    title    = str_wrap(paste0("Weight and freight cost move median delivery by at most ",
+                               max(shipment_spread$spread), " days, compared with ",
+                               route_spread, " days between routes"), 60),
+    subtitle = "Dot = median delivery days, bar = middle 50% of orders. Dashed line = overall median.",
+    x = NULL,
+    y = "Delivery time (days)"
+  )
 ```
 
 ```{r}
-#| message: false
-#| warning: false
+#| include: false
+light <- weight_summary |> slice(1)
+heavy <- weight_summary |> slice(n())
+low_ratio  <- ratio_summary |> slice(1)
+high_ratio <- ratio_summary |> slice(n())
+```
 
-supply_chain_data |>
-  left_join(state_names, by = "seller_state") |>
-  filter(seller_name %in% top_4_state_names) |>
-  filter(!is.na(product_weight_g)) |>
-  ggplot(
-    aes(
-      x = product_weight_g,
-      y = freight_value
-    )
-  ) +
-  geom_point(
-    color = "gray70",
-    alpha = 0.12
-  ) +
-  geom_smooth(
-    aes(color = seller_name),
-    se = FALSE,
-    linewidth = 1.7
-  ) +
-  facet_wrap(~ seller_name) +
-  scale_color_manual(
-    values = c(
-      "Minas Gerais" = "#F72585",
-      "Paraná" = "#F8961E",
-      "Rio de Janeiro" = "#2A9D8F",
-      "São Paulo" = "#7209B7"
-    )
-  ) +
+**So what:** the lightest orders (`r light$weight_band`) have a median of `r light$median_days` days and the heaviest (`r heavy$weight_band`) `r heavy$median_days` days. Orders whose shipping cost is under 10% of the product price have a median of `r low_ratio$median_days` days, against `r high_ratio$median_days` days when shipping costs more than the products. Across all bands the median moves by at most `r max(shipment_spread$spread)` days, while it moves by `r route_spread` days between the fastest and slowest route, so shipment characteristics matter less than the route. Freight cost is still useful because it is known at checkout and partly reflects distance, so I will test it as a predictor in Milestone 2.
+
+## 5. Over time, and against the promise
+
+### 5a. Did delivery time change as the marketplace grew?
+
+```{r}
+#| fig-height: 5.5
+
+monthly <- delivery_data |>
+  mutate(month = make_date(purchase_year, purchase_month, 1)) |>
+  group_by(month) |>
+  summarise(
+    orders      = n(),
+    median_days = median(delivery_days),
+    .groups = "drop"
+  )
+
+monthly_kept <- monthly |> filter(orders >= min_orders)
+peak_month   <- monthly_kept |> slice_max(orders, n = 1, with_ties = FALSE)
+slow_month   <- monthly_kept |> slice_max(median_days, n = 1, with_ties = FALSE)
+
+monthly_long <- monthly_kept |>
+  pivot_longer(c(orders, median_days), names_to = "metric", values_to = "value") |>
+  mutate(metric = if_else(metric == "orders", "Orders per month", "Median delivery days"),
+         metric = factor(metric, levels = c("Orders per month", "Median delivery days")))
+
+ggplot(monthly_long, aes(x = month, y = value)) +
+  geom_area(data = filter(monthly_long, metric == "Orders per month"),
+            fill = "#1b6ca8", alpha = 0.25) +
+  geom_line(color = "#1b6ca8", linewidth = 1) +
+  geom_point(color = "#1b6ca8", size = 1.5) +
+  geom_vline(xintercept = slow_month$month, linetype = "dashed", color = "#c0392b") +
+  facet_wrap(~ metric, ncol = 1, scales = "free_y") +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "3 months") +
   labs(
-    title = "The freight relationship changes across major seller states",
-    subtitle = "Each highlighted line shows the state-specific weight-to-freight pattern",
-    x = "Product Weight (grams)",
-    y = "Freight Cost"
-  ) +
-  guides(
-    color = "none"
-  ) +
-  theme_light()
+    title    = str_wrap(paste0("Median delivery time ranged from ", min(monthly_kept$median_days),
+                               " to ", max(monthly_kept$median_days),
+                               " days by month, slowest in ", format(slow_month$month, "%B %Y")), 60),
+    subtitle = str_wrap(paste0("Months with at least ", min_orders,
+                      " delivered orders. Red line marks the slowest month."), 60),
+    x = NULL,
+    y = NULL
+  )
 ```
 
-**What this shows:** All four major seller states show a positive relationship between product weight and freight cost, but the strength and shape of that relationship are not identical.
+**So what:** the busiest month was `r format(peak_month$month, "%B %Y")` with `r format(peak_month$orders, big.mark = ",", trim = TRUE)` orders. The slowest month was `r format(slow_month$month, "%B %Y")` with a median of `r slow_month$median_days` days, against `r overall_median` days overall. Months with very few orders at the start and end of the data were left out (`r nrow(monthly) - nrow(monthly_kept)` months) because their medians are not reliable. Delivery time is not fixed from month to month, so purchase month belongs in the Milestone 2 model. Comparing the two panels shows whether the slow months line up with the busy ones.
 
-The state-specific trend lines therefore suggest that product weight explains part of freight cost, while seller location and other fulfillment factors may also contribute.
-
-## 5. Freight cost variation
-
-Average freight cost can hide substantial differences between individual shipments.
-
-To look beyond the average, I combined a violin plot and a boxplot for the five largest seller states.
+### 5b. How does actual delivery compare with the promise?
 
 ```{r}
-top_5_states <- top_8_states |>
-  head(5)
+#| fig-height: 4.5
 
-top_5_state_names <- top_5_states$seller_name
+promise_summary <- delivery_data |>
+  mutate(days_early = estimated_days - delivery_days) |>
+  group_by(customer_region) |>
+  summarise(
+    orders            = n(),
+    median_promised   = median(estimated_days),
+    median_actual     = median(delivery_days),
+    median_days_early = median(days_early),
+    pct_late          = round(mean(delivery_status == "Late") * 100, 1),
+    .groups = "drop"
+  ) |>
+  arrange(desc(median_days_early))
 
-highest_freight_state <- top_5_states |>
-  arrange(desc(average_freight_cost)) |>
-  head(1)
-```
+promise_summary
 
-```{r}
-supply_chain_data |>
-  left_join(state_names, by = "seller_state") |>
-  filter(seller_name %in% top_5_state_names) |>
-  ggplot(
-    aes(
-      x = seller_name,
-      y = freight_value,
-      fill = seller_name
-    )
-  ) +
-  geom_violin(
-    alpha = 0.5
-  ) +
-  geom_boxplot(
-    width = 0.12,
-    alpha = 0.7
-  ) +
+most_padded <- promise_summary |> slice_max(median_days_early, n = 1, with_ties = FALSE)
+
+promise_summary |>
+  ggplot(aes(y = fct_reorder(customer_region, median_promised))) +
+  geom_segment(aes(x = median_actual, xend = median_promised, yend = customer_region),
+               linewidth = 2, color = "grey80") +
+  geom_point(aes(x = median_actual, color = "Actual (median)"), size = 4) +
+  geom_point(aes(x = median_promised, color = "Promised (median)"), size = 4) +
+  geom_text(aes(x = median_promised, label = paste0(pct_late, "% late")),
+            hjust = -0.4, size = 3.2, color = "grey30") +
+  scale_color_manual(values = c("Actual (median)" = "#1b6ca8", "Promised (median)" = "#e67e22")) +
+  scale_x_continuous(expand = expansion(mult = c(0.05, 0.35))) +
   labs(
-    title = "Average freight cost hides large differences between shipments",
-    subtitle = "Violin shapes show the distribution while boxplots highlight center and spread",
-    x = "Seller State",
-    y = "Freight Cost",
-    fill = "Seller State"
-  ) +
-  guides(
-    fill = "none"
-  ) +
-  theme_light()
+    title    = str_wrap(paste0("Delivery promises are padded everywhere, most of all for the ",
+                      most_padded$customer_region, " (", most_padded$median_days_early,
+                      " days early)"), 60),
+    subtitle = "Median promised vs actual delivery days by customer region, with % of orders late",
+    x = "Days",
+    y = "Customer region",
+    color = NULL
+  )
 ```
 
-**What this shows:** **`r highest_freight_state$seller_name`** has the highest average freight cost among the five largest seller states at approximately **`r round(highest_freight_state$average_freight_cost, 1)`**.
+**So what:** in every region the typical order arrives well before its promised date. The gap is largest for the `r most_padded$customer_region` (median `r most_padded$median_days_early` days early). This explains the 92% on-time rate from the Data page: orders are "on time" mainly because the promises are generous. Customers in distant regions still wait the longest, they are just warned in advance.
 
-The distributions also show that some seller states have much greater variation in freight cost than others.
+### 5c. What do the late orders look like on their own?
 
-This distinction matters because consistently expensive shipments represent a different operational issue from a smaller number of unusually expensive orders.
+```{r}
+late_orders <- delivery_data |>
+  filter(delivery_status == "Late") |>
+  mutate(days_late = delivery_days - estimated_days)
 
-## 6. Management takeaway
+late_orders |>
+  summarise(
+    late_orders      = n(),
+    min_days_late    = min(days_late),
+    median_days_late = median(days_late),
+    mean_days_late   = round(mean(days_late), 1),
+    max_days_late    = max(days_late),
+    median_delivery  = median(delivery_days)
+  )
 
-The exploration shows that seller performance should not be evaluated using volume, delivery performance, or freight cost in isolation.
+late_vs_all <- delivery_data |>
+  count(customer_region, name = "all_orders") |>
+  left_join(late_orders |> count(customer_region, name = "late_orders"), by = "customer_region") |>
+  mutate(
+    late_orders  = replace_na(late_orders, 0),
+    pct_of_all   = round(all_orders / sum(all_orders) * 100, 1),
+    pct_of_late  = round(late_orders / sum(late_orders) * 100, 1),
+    late_rate    = round(late_orders / all_orders * 100, 1)
+  ) |>
+  arrange(desc(late_rate))
 
-High-volume seller groups deserve attention because even small improvements can affect a large number of marketplace items.
+late_vs_all
 
-At the same time, higher freight cost should not automatically be interpreted as seller inefficiency because heavier products naturally cost more to ship.
+late_summary <- late_orders |> summarise(median_days_late = median(days_late), median_delivery = median(delivery_days))
+worst_region <- late_vs_all |> slice(1)
+```
 
-Management should focus most closely on seller groups that combine:
+**What this told me:** looking only at the `r nrow(late_orders)` late orders, the typical one arrives `r late_summary$median_days_late` days after its promised date, and takes `r late_summary$median_delivery` days in total, against `r overall_median` days for all orders. They are also not spread evenly: customers in the `r worst_region$customer_region` make up `r worst_region$pct_of_all`% of all orders but `r worst_region$pct_of_late`% of late ones (a late rate of `r worst_region$late_rate`%).
 
-- high marketplace volume,
-- delivery performance below the marketplace benchmark,
-- freight burden above the marketplace benchmark,
-- substantial freight-cost variation, and
-- freight costs that cannot be fully explained by heavier products.
+**What I did because of it:** the late orders are the far end of the same distance pattern from Section 3, so I treat them as part of the `delivery_days` outcome instead of building a separate late/on-time model.
 
-Taken together, these measures provide a more balanced way to identify which seller groups support efficient marketplace growth and where operational improvements could have the greatest impact.
+## What this means for management
+
+1. **Distance, not seller quality, drives most of the delivery time.** Orders crossing state lines take a median of `r diff_median` days against `r same_median` days within a state, and the slowest route takes `r slowest_route$median_days` days. Recruiting sellers located in the North and Northeast, or placing stock closer to those customers, would cut delivery time more than pressuring sellers in the Southeast.
+2. **Promises can be tightened on fast routes.** Orders arrive days before the estimate in every region. Showing shorter, route-based estimates on short routes would make the marketplace look faster without changing logistics.
+3. **Plan for slow months.** The monthly median ranged from `r min(monthly_kept$median_days)` to `r max(monthly_kept$median_days)` days, with the slowest month in `r format(slow_month$month, "%B %Y")`. Delivery promises and carrier capacity should be adjusted for those periods.
+4. **Shipment size is a secondary factor.** Weight and freight cost move the median by at most `r max(shipment_spread$spread)` days, against `r route_spread` days between routes.
+
+## Limitations
+
+- **No real distance, carrier or capacity.** I only know the seller and customer state, not the actual distance, the carrier used, the warehouse, or how many orders a seller can handle at once. "Same state" and region-to-region routes are approximations of distance.
+- **Associations, not causes.** These charts show what goes together with longer delivery. For example, seller state and customer state are tangled: most sellers and customers are in the Southeast.
+- **Removed orders.** Undelivered orders and the small number of multi-seller orders are excluded, so the results describe single-seller orders that arrived.
+- **Calendar days.** The data does not say whether `delivery_days` counts weekends and holidays, so some differences between months may come from the calendar.
+- **Sparse edges.** Months and routes with fewer than `r min_orders` orders are left out of the comparisons, so the results say nothing about those small groups.
+
+## Plan for Milestone 2 (modeling)
+
+- **Target:** `delivery_days`, a number, so this is a regression problem.
+- **Predictors (all known when the order is placed):** `seller_state`/`seller_region`, `customer_region`, `same_state`, `shipment_weight_kg`, `order_freight`, `freight_ratio`, `main_category`, `n_items`, `purchase_month`, and `estimated_days`. Each one follows from a finding on this page: route (Section 3), shipment (Section 4) and month (Section 5).
+- **Leakage check:** `delivery_status` is computed from the target (`delivery_days <= estimated_days`), and the delivery date is how `delivery_days` is measured, so both are excluded. `estimated_days` is known at checkout, but it is the marketplace's own forecast, so I will compare models with and without it to see how much the model learns beyond the existing estimate. The data has one row per order, so the same order can never appear in both the training and the test set.
+- **Baseline:** predict the training-set median for every order. A model is only useful if it beats this. On the full data the baseline would miss by **`r round(mean(abs(delivery_data$delivery_days - overall_median)), 1)` days on average** (mean absolute error).
+- **Approach:** following the class blueprint, split the data with a seed and build recipes of increasing size: (1) route only (`same_state`, regions, `seller_state`), (2) + shipment (`order_freight`, `shipment_weight_kg`, `main_category`, `n_items`), (3) + time and promise (`purchase_month`, `estimated_days`). Compare them on the test set using RMSE, MAE and R².
+- **Skew:** because `delivery_days` has a long right tail, I will also test modeling `log(delivery_days)` and check whether it reduces errors on the slow orders.

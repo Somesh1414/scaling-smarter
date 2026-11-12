@@ -1,9 +1,13 @@
 project:
   type: website
   output-dir: _site
+  render:
+    - index.qmd
+    - data.qmd
+    - eda.qmd
 
 website:
-  title: "Scaling Smarter"
+  title: "What Drives Delivery Time?"
   navbar:
     left:
       - href: index.qmd
@@ -12,10 +16,6 @@ website:
         text: Data
       - href: eda.qmd
         text: Exploration
-      - href: modeling.qmd
-        text: Modeling
-      - href: conclusions.qmd
-        text: Conclusions
 
 format:
   html:
